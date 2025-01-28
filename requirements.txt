@@ -1,0 +1,24 @@
+# main modules
+django>4.2,<4.3
+python-decouple
+
+
+# celery modules
+celery
+django-celery-beat
+redis
+
+# send email module
+django-mail-templated
+
+# token module
+itsdangerous
+
+
+
+
+
+# database modules
+psycopg[binary]
+
+

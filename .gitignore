@@ -1,0 +1,4 @@
+# database ignore files
+postgres/data/*
+
+Template-Shop/*
