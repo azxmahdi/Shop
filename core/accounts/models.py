@@ -71,10 +71,11 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
 class Profile(models.Model):
     
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, primary_key=True)  # Important change: OneToOneField and primary_key=True
-    first_name = models.CharField(max_length=250, blank=True) #allow blank
-    last_name = models.CharField(max_length=250, blank=True) #allow blank
-    phone_number = models.CharField(max_length=12, validators=[validate_phone_number], blank=True) #allow blank
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, primary_key=True)
+    first_name = models.CharField(max_length=250, blank=True)
+    last_name = models.CharField(max_length=250, blank=True) 
+    phone_number = models.CharField(max_length=12, validators=[validate_phone_number], blank=True)
+    image = models.ImageField(upload_to="profile/",default="profile/default.png")
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
 
@@ -95,5 +96,5 @@ class Profile(models.Model):
 
 @receiver(post_save, sender=CustomUser)
 def create_profile(sender, instance, created, **kwargs):
-    if created and instance.type == UserType.customer.value:
-        Profile.objects.create(user=instance, pk=instance.pk)  # Explicitly set pk to user's ID
+    if created :
+        Profile.objects.create(user=instance, pk=instance.pk) 

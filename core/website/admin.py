@@ -1,3 +1,18 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import ContactModel, TeamMembers, JobTitle
+
+
+@admin.register(ContactModel)
+class ProductAdmin(admin.ModelAdmin):
+    list_display = ('id', 'full_name', 'email', 'phone_number', 'subject', 'content')
+
+
+@admin.register(TeamMembers)
+class TeamMembersAdmin(admin.ModelAdmin):
+    list_display = ('id', 'description', 'facebook_link', 'twitter_link', 'created_date','updated_date', 'status' )
+
+
+@admin.register(JobTitle)
+class JobTitleAdmin(admin.ModelAdmin):
+    list_display = ('id', 'title')

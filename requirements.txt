@@ -1,6 +1,7 @@
 # main modules
 django>4.2,<4.3
 python-decouple
+Pillow
 
 
 # celery modules
@@ -22,3 +23,5 @@ itsdangerous
 psycopg[binary]
 
 
+# generate fake data
+faker
