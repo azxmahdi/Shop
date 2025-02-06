@@ -3,6 +3,7 @@
 {% load shop_tags %}
 
 
+
 {% block title %}Shop: Product Overview | Front - Multipurpose Responsive Template{% endblock title %}
   <!-- ========== MAIN CONTENT ========== -->
     {% block content %}
@@ -89,42 +90,42 @@
 
           <!-- Price -->
           <div class="mb-5">
-            <span class="d-block mb-2">قیمت کل:</span>
+            <span class="d-block mb-2">قیمت محصول:</span>
+            {% if object.is_discounted %}
             <div class="d-flex align-items-center">
-              {% if product.is_discounted %}
-              <h3 class="mb-0">{{product.get_price}}</h3>
-              <span class="ms-2"><del>{{product.price}}</del></span>
-              {% else %}
-              <h3 class="mb-0">{{product.price}}</h3>
-              {% endif %}
-
+                <h3 class="mb-0 formatted-price">{{object.get_price}} </h3>
+                <span class="me-2 formatted-price text-decoration-line-through">{{object.price}}</span>
             </div>
-          </div>
-          <!-- End Price -->
+            {% else %}
+            <div class="d-flex align-items-center">
+                <h3 class="mb-0 formatted-price">{{object.price}} </h3>
+            </div>
+            {% endif %}
+        </div>
+        <!-- End Price -->
 
+        <!-- Price -->
+        <div class="mb-5" id="total-price-div">
+          <span class="d-block mb-2">قیمت کل:</span>
+          {% if object.is_discounted %}
+          <div class="d-flex align-items-center">
+              <h3 id="total-price" class="mb-0 formatted-price" >  </h3>
+          </div>
+          {% endif %}
+      </div>
+      <!-- End Price -->
+        <div id="productIndicator"> 
           <!-- Quantity -->
           <div class="quantity-counter mb-3">
             <div class="js-quantity-counter row align-items-center">
               <div class="col">
                 <span class="d-block small">تعداد را انتخاب کنید</span>
-                <input class="js-result form-control form-control-quantity-counter" type="text" value="1">
+                <input class="js-result form-control form-control-quantity-counter" type="text" value="{{selected_quantity}}" id="quantityInput">
+                <p id="result-update-quantity">  </p>
               </div>
-              <!-- End Col -->
-
-              <div class="col-auto">
-                <a class="js-minus btn btn-outline-secondary btn-xs btn-icon rounded-circle" href="javascript:;">
-                  <svg width="8" height="2" viewBox="0 0 8 2" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M0 1C0 0.723858 0.223858 0.5 0.5 0.5H7.5C7.77614 0.5 8 0.723858 8 1C8 1.27614 7.77614 1.5 7.5 1.5H0.5C0.223858 1.5 0 1.27614 0 1Z" fill="currentColor" />
-                  </svg>
-                </a>
-                <a class="js-plus btn btn-outline-secondary btn-xs btn-icon rounded-circle" href="javascript:;">
-                  <svg width="8" height="8" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 0C4.27614 0 4.5 0.223858 4.5 0.5V3.5H7.5C7.77614 3.5 8 3.72386 8 4C8 4.27614 7.77614 4.5 7.5 4.5H4.5V7.5C4.5 7.77614 4.27614 8 4 8C3.72386 8 3.5 7.77614 3.5 7.5V4.5H0.5C0.223858 4.5 0 4.27614 0 4C0 3.72386 0.223858 3.5 0.5 3.5H3.5V0.5C3.5 0.223858 3.72386 0 4 0Z" fill="currentColor" />
-                  </svg>
-                </a>
-              </div>
-              <!-- End Col -->
             </div>
+          </div>
+          
             <!-- End Row -->
           </div>
           <!-- End Quantity -->
@@ -186,10 +187,10 @@
             <!-- End Collapse -->
           </div>
           <!-- End Accordion -->
+        </div>
 
-          <div class="d-grid mb-4">
-            <button type="button" class="btn btn-primary btntransition">افزودن به سبد خرید</button>
-          </div>
+
+        <button type="button" class="btn btn-primary btntransition" onclick="handleAddToCart('{{object.id}}')" id="add-to-cart">افزودن به سبد خرید</button>   
 
           <!-- Media -->
           <div class="d-flex align-items-center">
@@ -662,3 +663,120 @@
     <!-- End Subscribe -->
   <!-- ========== END MAIN CONTENT ========== -->
   {% endblock content %}
+
+
+  {% block extra_js %}
+    
+    <script>
+      function handleAddToCart(productId) {
+        addToCart(productId)
+            .then(() => {
+                
+                location.reload(true); 
+            })
+            .catch(error => {
+                console.error("Error adding to cart:", error);
+                
+            });
+    }
+    
+    
+      $(document).ready(function() {
+         
+          window.checkProductInCart = function() {
+              $.ajax({
+                  url: "{% url 'cart:session-check-is-product' %}",
+                  type: "POST",
+                  data: {
+                      'product_id': '{{ object.id }}',
+                      'csrfmiddlewaretoken': '{{ csrf_token }}'
+                  },
+                  success: function(response) {
+                      if (response.status === 'ok') {
+                          $("#productIndicator").show(); 
+                          $("#total-price-div").show();
+                          $("#add-to-cart").hide(); 
+                          $("#total-price").html(response.total_payment_product)
+                      } else {
+                          $("#productIndicator").hide();
+                          $("#total-price-div").hide();
+
+                      }
+                  },
+                  error: function(jqXHR, textStatus, errorThrown) {
+                      console.log(errorThrown); 
+                  }
+              });
+          };
+        
+          
+          checkProductInCart();
+      });
+  
+      const input = document.getElementById('quantityInput');
+      const button = document.getElementById('submitButton');
+      function checkInput() {
+        var quantityInput = $('#quantityInput').val(); 
+        $.ajax({
+            url: "{% url 'cart:session-update-product-quantity-detail' %}",
+            type: "POST",
+            data: {
+                'product_id': '{{ object.id }}',
+                'quantity': quantityInput,
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.status === "success") {
+                    $("#total-cart-item-count").html(response.total_quantity);
+                    $('#result-update-quantity').html(response.message).css('color', 'green');
+                    $("#total-price").html(response.total_payment_product);
+
+                } else {
+                    $("#total-cart-item-count").html(response.total_quantity);
+                    $('#result-update-quantity').html(response.message).css('color', 'red');
+                    $("#total-price").html(response.total_payment_product);
+                }
+            },
+            error: function(xhr, status, error) {
+                $('#result-update-quantity').html('Update failed: ' + error);
+            }
+        });
+    }
+    
+      
+    
+      input.addEventListener('input', checkInput);
+      
+      $(document).ready(function() {
+        $('#submitButton').click(function(event) {
+            event.preventDefault(); 
+            var quantityInput = $('#quantityInput').val();
+            $.ajax({
+                url: "{% url 'cart:session-update-product-quantity-detail' %}",
+                type: "POST",
+                data: {
+                    'product_id': '{{ object.id }}',
+                    'quantity': quantityInput,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.status === "success") {
+                        $("#total-cart-item-count").html(response.total_quantity);
+                        $('#result-update-quantity').html(response.message).css('color', 'green'); 
+                    } else {
+                        $('#result-update-quantity').html(response.message).css('color', 'red');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    $('#result-update-quantity').html('Update failed: ' + error);
+                }
+            });
+        });
+    });
+    
+
+      
+    </script>
+
+  
+  {% endblock %}

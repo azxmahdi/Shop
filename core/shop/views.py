@@ -1,6 +1,7 @@
 from django.views.generic import ListView, DetailView
 
 from .models import ProductModel, ProductStatusType, ProductCategoryModel
+from cart.cart import CartSession
 
 class ShopProductGridView(ListView):
     template_name = 'shop/products-grid.html'
@@ -41,3 +42,11 @@ class ShopProductDetailView(DetailView):
     template_name = 'shop/product-overview.html'
     model = ProductModel
     context_object_name = 'product'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        cart = CartSession(self.request.session)
+        context["selected_quantity"] = cart.get_product_quantity(self.object.id)
+        print(self.object.id)
+        print(context["selected_quantity"])
+        return context
