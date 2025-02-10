@@ -25,3 +25,6 @@ psycopg[binary]
 
 # generate fake data
 faker
+
+# text editor
+django-ckeditor

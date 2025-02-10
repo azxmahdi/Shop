@@ -21,8 +21,11 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('ckeditor/', include('ckeditor_uploader.urls')),
     path('', include('website.urls'), name='website'),
     path('accounts/', include('accounts.urls'), name='accounts'),
+    path('dashboard/', include('dashboard.urls'), name='dashboard'),
+
     path('shop/', include('shop.urls'), name='shop'),
     path('cart/', include('cart.urls'), name='cart'),
 

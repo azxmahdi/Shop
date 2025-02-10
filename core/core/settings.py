@@ -42,11 +42,16 @@ INSTALLED_APPS = [
     'mail_templated',
     
 
+    'ckeditor',
+    'ckeditor_uploader',
+
 
     'website.apps.WebsiteConfig', 
-    'accounts',
-    'shop',
-    'cart',
+    'accounts.apps.AccountsConfig',
+    'dashboard.apps.DashboardConfig',
+    'shop.apps.ShopConfig',
+    'cart.apps.CartConfig',
+    
 ]
 
 MIDDLEWARE = [
@@ -111,6 +116,9 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
+    {
+        'NAME': 'dashboard.validators.ChangePasswordValidator',  # مسیر به اعتبارسنج سفارشی
+    },
 ]
 
 
@@ -158,3 +166,17 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 
 # celery configurations
 CELERY_BROKER_URL = 'redis://redis:6379/1'
+
+
+# ckeditor configurations
+CKEDITOR_UPLOAD_PATH = "uploads/"  # مسیر ذخیره فایل‌های آپلود شده
+CKEDITOR_IMAGE_BACKEND = "pillow"  # برای پردازش تصاویر
+CKEDITOR_JQUERY_URL = 'https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js'  # استفاده از jQuery
+
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'full',  # استفاده از تمام ابزارهای CKEditor
+        'height': 300,  # ارتفاع ویرایشگر
+        'width': '100%',  # عرض ویرایشگر
+    },
+}

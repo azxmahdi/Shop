@@ -71,7 +71,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
 class Profile(models.Model):
     
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, primary_key=True)
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, primary_key=True, related_name='user_profile')
     first_name = models.CharField(max_length=250, blank=True)
     last_name = models.CharField(max_length=250, blank=True) 
     phone_number = models.CharField(max_length=12, validators=[validate_phone_number], blank=True)
@@ -92,6 +92,11 @@ class Profile(models.Model):
     
     def full_name(self):
         return self.first_name + ' ' + self.last_name
+    
+    def get_fullname(self):
+        if self.first_name or self.last_name:
+            return self.first_name + " " + self.last_name
+        return "کاربر جدید"
 
 
 @receiver(post_save, sender=CustomUser)

@@ -1,0 +1,125 @@
+{% extends 'dashboard/customer/base.html' %}
+{% load static %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb breadcrumb-light mb-0">
+        <li class="breadcrumb-item">حساب</li>
+        <li class="breadcrumb-item"> داشبورد کاربر</li>
+        <li class="breadcrumb-item active" aria-current="page">
+            ویرایش پروفایل
+        </li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<!-- Card -->
+
+<div class="card mb-3">
+    <div class="card-header border-bottom">
+        <h4 class="card-header-title">اطلاعات پایه</h4>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <!-- Form -->
+        <div class="row mb-4">
+            <label class="col-sm-3 col-form-label form-label">عکس پروفایل</label>
+            <div class="col-sm-9">
+                <div class="d-flex align-items-center">
+                    <!-- Avatar -->
+                    <label class="avatar avatar-xl avatar-circle" for="id_image">
+                        <img id="avatarImg" class="avatar-img" src="{{ form.instance.image.url }}" alt="عکس پروفایل">
+                    </label>
+                    <div class="d-grid d-sm-flex gap-2 me-4">
+                        <div class="form-attachment-btn btn btn-primary btn-sm">آپلود عکس
+                            {{ form.image }}
+                        </div>
+                        <button type="button" id="deleteImageBtn" class="btn btn-white btn-sm">حذف کردن</button>
+                        {{ form.delete_image }}  <!-- فیلد مخفی برای حذف عکس -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End Form -->
+    
+        <!-- سایر فیلدهای فرم -->
+        <div class="row mb-4">
+            <label for="id_first_name" class="col-sm-3 col-form-label form-label">نام کامل</label>
+            <div class="col-sm-9">
+                <div class="input-group">
+                    {{ form.first_name }}
+                    {{ form.last_name }}
+                </div>
+            </div>
+        </div>
+    
+        <div class="row mb-4">
+            <label for="id_email" class="col-sm-3 col-form-label form-label">ایمیل</label>
+            <div class="col-sm-9">
+                <input type="email" class="form-control" value="{{ request.user.email }}" readonly>
+            </div>
+        </div>
+    
+        <div class="row mb-4">
+            <label for="id_phone_number" class="col-sm-3 col-form-label form-label">تلفن</label>
+            <div class="col-sm-9">
+                {{ form.phone_number }}
+            </div>
+        </div>
+    
+        <div class="card-footer pt-0">
+            <div class="d-flex justify-content-end gap-3">
+                <a class="btn btn-white" href="{% url 'dashboard:customer:security-edit' %}">لغو</a>
+                <button type="submit" class="btn btn-primary">ذخیره تغییرات</button>
+            </div>
+        </div>
+    </form>
+    <!-- End Footer -->
+</div>
+<!-- End Card -->
+{% endblock %}
+
+{% block extra_js_no_compress %}
+
+    
+    
+    <script>
+        // مدیریت پیش‌نمایش عکس جدید و بازگشت به عکس قبلی
+        let previousImageUrl = "{{ form.instance.image.url }}";  // ذخیره URL عکس قبلی
+        let isNewImageUploaded = false;  // آیا عکس جدید آپلود شده است؟
+    
+        // نمایش تصویر انتخابی قبل از آپلود
+        document.getElementById('id_image').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('avatarImg').src = e.target.result;
+                    isNewImageUploaded = true;  // عکس جدید آپلود شده است
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    
+        // مدیریت دکمه "حذف کردن"
+        document.getElementById('deleteImageBtn').addEventListener('click', function() {
+            if (isNewImageUploaded) {
+                // اگر عکس جدید آپلود شده بود، به عکس قبلی بازگردانده شود
+                document.getElementById('avatarImg').src = previousImageUrl;
+                isNewImageUploaded = false;  // حالت عکس جدید را بازنشانی کن
+            } else {
+                // اگر عکس جدید آپلود نشده بود، تصویر پیش‌فرض نمایش داده شود
+                document.getElementById('avatarImg').src = "{% static 'profile/default.png' %}";
+            }
+        
+            // پاک کردن فایل انتخاب شده
+            document.getElementById('id_image').value = '';
+        
+            // تغییر مقدار فیلد مخفی delete_image به True
+            document.getElementById('id_delete_image').value = true;
+        });
+    </script>
+
+{% endblock extra_js_no_compress %}
