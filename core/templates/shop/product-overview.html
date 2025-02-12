@@ -11,63 +11,68 @@
     <div class="container content-space-t-1 content-space-t-sm-2">
       <div class="row">
         <div class="col-md-7 mb-7 mb-md-0">
+          {{product.product_images.all}}
           <div class="pe-md-4">
-            <div class="card-pinned">
-              <!-- Swiper Main Slider -->
-              <div class="js-swiper-shop-product swiper">
-                <div class="swiper-wrapper">
-                  <!-- Slide -->
-                  <div class="swiper-slide">
-                    <div class="card card-bordered shadow-none">
-                      <img class="card-img" src="{{product.image.url}}" alt="Image Description">
-                    </div>
-                  </div>
-                  <!-- End Slide -->
 
-                  <!-- Slide -->
-                  <div class="swiper-slide">
-                    <div class="card card-bordered shadow-none">
-                      <img class="card-img" src=" {% static 'img/600x600/img2.jpg' %}" alt="Image Description">
-                    </div>
-                  </div>
-                  <!-- End Slide -->
+              <div class="card-pinned">
 
-                  <!-- Slide -->
-                  <div class="swiper-slide">
-                    <div class="card card-bordered shadow-none">
-                      <img class="card-img" src="{% static 'img/600x600/img3.jpg' %}" alt="Image Description">
-                    </div>
-                  </div>
-                  <!-- End Slide -->
-                </div>
+                  <!-- Swiper Main Slider -->
+                  <div class="js-swiper-shop-product swiper">
+                      <div class="swiper-wrapper">
+                          <!-- Slide -->
+                          <div class="swiper-slide">
+                              <div class="card card-bordered shadow-none">
+                                  <img class="card-img" src="{{product.image.url}}" alt="Image Description">
+                              </div>
+                          </div>
+                          {% for product_image in product.product_images.all %}
+                          <div class="swiper-slide">
+                              <div class="card card-bordered shadow-none">
+                                  <img class="card-img" src="{{product_image.file.url}}" alt="Image Description">
+                              </div>
+                          </div>
+                          {% endfor %}
+                          <!-- End Slide -->
 
-                <!-- Arrows -->
-                <div class="js-swiper-shop-product-button-next swiper-button-next"></div>
-                <div class="js-swiper-shop-product-button-prev swiper-button-prev"></div>
+
+                      </div>
+
+                      <!-- Arrows -->
+                      <div class="js-swiper-shop-product-button-next swiper-button-next"></div>
+                      <div class="js-swiper-shop-product-button-prev swiper-button-prev"></div>
+                  </div>
+                  <!-- End Swiper Main Slider -->
+
+                  <!-- Swiper Thumb Slider -->
+                  <div class="position-absolute bottom-0 end-0 start-0 zi-1 p-4">
+                      <div class="js-swiper-shop-product-thumb swiper" style="max-width: 15rem;">
+                          <div class="swiper-wrapper">
+                              <!-- Slide -->
+                              
+                              <div class="swiper-slide">
+                                <a class="avatar avatar-circle" href="javascript:;">
+                                  <img class="avatar-img" src="{{product.image.url}}" alt="Image Description">
+                                </a>
+                                {% for product_image in product.product_images.all %}
+                                  <a class="avatar avatar-circle" href="javascript:;">
+                                      <img class="avatar-img" src="{{product_image.file.url}}"
+                                          alt="Image Description">
+                                  </a>
+                                {% endfor %}
+                              </div>
+                              <!-- End Slide -->
+
+
+                              <!-- End Slide -->
+                          </div>
+                      </div>
+                  </div>
+                  <!-- End Swiper Thumb Slider -->
               </div>
-              <!-- End Swiper Main Slider -->
-
-              <!-- Swiper Thumb Slider -->
-              <div class="position-absolute bottom-0 end-0 start-0 zi-1 p-4">
-                <div class="js-swiper-shop-product-thumb swiper" style="max-width: 15rem;">
-                  <div class="swiper-wrapper">
-                    <!-- Slide -->
-                    <div class="swiper-slide">
-                      <a class="avatar avatar-circle" href="javascript:;">
-                        <img class="avatar-img" src="{{product.image.url}}" alt="Image Description">
-                      </a>
-                    </div>
-                    <!-- End Slide -->
-
-                    
-                  </div>
-                </div>
-              </div>
-              <!-- End Swiper Thumb Slider -->
-            </div>
           </div>
-        </div>
-        <!-- End Col -->
+      </div>
+      <!-- End Col -->
+
 
         <div class="col-md-5">
           <!-- Rating -->
@@ -91,14 +96,14 @@
           <!-- Price -->
           <div class="mb-5">
             <span class="d-block mb-2">قیمت محصول:</span>
-            {% if object.is_discounted %}
+            {% if product.is_discounted %}
             <div class="d-flex align-items-center">
-                <h3 class="mb-0 formatted-price">{{object.get_price}} </h3>
-                <span class="me-2 formatted-price text-decoration-line-through">{{object.price}}</span>
+                <h3 class="mb-0 formatted-price">{{product.get_price}} </h3>
+                <span class="me-2 formatted-price text-decoration-line-through">{{product.price}}</span>
             </div>
             {% else %}
             <div class="d-flex align-items-center">
-                <h3 class="mb-0 formatted-price">{{object.price}} </h3>
+                <h3 class="mb-0 formatted-price">{{product.price}} </h3>
             </div>
             {% endif %}
         </div>
@@ -107,7 +112,7 @@
         <!-- Price -->
         <div class="mb-5" id="total-price-div">
           <span class="d-block mb-2">قیمت کل:</span>
-          {% if object.is_discounted %}
+          {% if product.is_discounted %}
           <div class="d-flex align-items-center">
               <h3 id="total-price" class="mb-0 formatted-price" >  </h3>
           </div>
@@ -190,7 +195,7 @@
         </div>
 
 
-        <button type="button" class="btn btn-primary btntransition" onclick="handleAddToCart('{{object.id}}')" id="add-to-cart">افزودن به سبد خرید</button>   
+        <button type="button" class="btn btn-primary btntransition" onclick="handleAddToCart('{{product.id}}')" id="add-to-cart">افزودن به سبد خرید</button>   
 
           <!-- Media -->
           <div class="d-flex align-items-center">
@@ -288,7 +293,7 @@
     <!-- End Content -->
 
 
-  {% similar_products object %}
+  {% similar_products product %}
 
     <!-- Review Section -->
     <div id="reviewSection" class="container content-space-b-2 content-space-b-lg-3">
@@ -688,7 +693,7 @@
                   url: "{% url 'cart:session-check-is-product' %}",
                   type: "POST",
                   data: {
-                      'product_id': '{{ object.id }}',
+                      'product_id': '{{ product.id }}',
                       'csrfmiddlewaretoken': '{{ csrf_token }}'
                   },
                   success: function(response) {
@@ -721,7 +726,7 @@
             url: "{% url 'cart:session-update-product-quantity-detail' %}",
             type: "POST",
             data: {
-                'product_id': '{{ object.id }}',
+                'product_id': '{{ product.id }}',
                 'quantity': quantityInput,
                 'csrfmiddlewaretoken': '{{ csrf_token }}'
             },
@@ -755,7 +760,7 @@
                 url: "{% url 'cart:session-update-product-quantity-detail' %}",
                 type: "POST",
                 data: {
-                    'product_id': '{{ object.id }}',
+                    'product_id': '{{ product.id }}',
                     'quantity': quantityInput,
                     'csrfmiddlewaretoken': '{{ csrf_token }}'
                 },
@@ -777,6 +782,7 @@
 
       
     </script>
+
 
   
   {% endblock %}

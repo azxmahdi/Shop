@@ -24,6 +24,7 @@
     <link rel="stylesheet" href="{% static 'css/theme.min.css' %}">
     <link rel="stylesheet" href="{% static 'vendor/toastify/toastify.css' %}">
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    
 
     {% block extra_css %} {% endblock extra_css %}
 
@@ -507,6 +508,35 @@
             });
         });
     }
+    </script>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        // تنظیمات Swiper اصلی
+        const mainSwiper = new Swiper('.main-swiper', {
+          loop: true,  // امکان حلقه‌زدن بین اسلایدها
+          navigation: {
+            nextEl: '.js-swiper-shop-product-button-next',  // استفاده از کلید موجود در تمپلیت
+            prevEl: '.js-swiper-shop-product-button-prev',  // استفاده از کلید موجود در تمپلیت
+          },
+          thumbs: {
+            swiper: thumbSwiper,  // اتصال به Thumb Slider
+          },
+        });
+    
+        // تنظیمات Thumb Swiper
+        const thumbSwiper = new Swiper('.thumb-swiper', {
+          loop: true,  // امکان حلقه‌زدن بین اسلایدها
+          slidesPerView: 4,  // تعداد تصاویر کوچک در هر صفحه
+          spaceBetween: 10,  // فاصله بین تصاویر کوچک
+          freeMode: true,  // امکان اسکرول آزاد
+          watchSlidesProgress: true,  // نمایش پیشرفت اسلایدها
+        });
+    
+        // اتصال Thumb Swiper به Main Swiper
+        mainSwiper.controller.control = thumbSwiper;
+        thumbSwiper.controller.control = mainSwiper;
+      });
     </script>
 
     {% include 'messages.html' %}

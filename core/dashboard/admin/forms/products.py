@@ -53,3 +53,4 @@ class ProductImageForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['file'].widget.attrs['class'] = 'form-control'
         self.fields['file'].widget.attrs['accept'] = 'image/png, image/jpg, image/jpeg'
+
