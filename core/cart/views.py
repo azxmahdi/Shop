@@ -1,18 +1,19 @@
 from typing import Any
 from django.views.generic import View, TemplateView
 from django.http import JsonResponse
+
 from shop.models import ProductModel, ProductStatusType
 from .cart import CartSession
-
+from .validation import is_validate_quantity_product
 
 class SessionAddProductView(View):
 
     def post(self, request, *args, **kwargs):
         cart = CartSession(request.session)
         product_id = request.POST.get("product_id")
-        if product_id and ProductModel.objects.filter(id=product_id, status=ProductStatusType.publish.value).exists():
-
+        if is_validate_quantity_product(cart=cart, product_id=product_id):
             cart.add_product(product_id)
+
         if request.user.is_authenticated:
             cart.merge_session_cart_in_db(request.user)
         return JsonResponse({"cart": cart.get_cart_dict(), "total_quantity": cart.get_total_quantity()})
@@ -51,10 +52,11 @@ class CartSummaryView(TemplateView):
         cart = CartSession(self.request.session)
         cart_items = cart.get_cart_items()
         context["cart_items"] = cart_items
-        print(cart_items)
         context["total_quantity"] = cart.get_total_quantity()
         context["total_payment_price"] = cart.get_total_payment_amount()
         return context
+    
+
     
 
 
@@ -71,7 +73,7 @@ class CheckIsProduct(View):
 
 class SessionUpdateProductQuantityDetailView(View):
     def post(self, request, *args, **kwargs):
-        if request.headers.get('x-requested-with') == 'XMLHttpRequest': # Check if the request is AJAX
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest': 
             cart = CartSession(request.session)
             product_id = request.POST.get('product_id')
             quantity = request.POST.get('quantity')

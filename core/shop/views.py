@@ -1,7 +1,12 @@
-from django.views.generic import ListView, DetailView
+from django.views.generic import ListView, DetailView, View
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import JsonResponse
+from django.db.models import Q, Count
 
-from .models import ProductModel, ProductStatusType, ProductCategoryModel, ProductImageModel
+from .models import ProductModel, ProductStatusType, ProductCategoryModel, ProductImageModel, WishlistProductModel
 from cart.cart import CartSession
+from review.models import ReviewModel, ReviewStatusType
+
 
 class ShopProductGridView(ListView):
     template_name = 'shop/products-grid.html'
@@ -36,7 +41,7 @@ class ShopProductGridView(ListView):
             
         return queryset
 
-    
+
 
 class ShopProductDetailView(DetailView):
     template_name = 'shop/product-overview.html'
@@ -45,7 +50,49 @@ class ShopProductDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        cart = CartSession(self.request.session)
-        context["selected_quantity"] = cart.get_product_quantity(self.object.id)
-        context["extra_images"] = ProductImageModel.objects.filter(product=self.get_object())
+        product = self.get_object()
+        
+        reviews = ReviewModel.objects.filter(
+            product=product,
+            status=ReviewStatusType.accepted.value
+        )
+        
+        total_reviews = reviews.count()
+        star_counts = reviews.aggregate(
+            **{f'star{star}': Count('pk', filter=Q(rate=star)) for star in range(1, 6)}
+        )
+        
+        context['star_counts'] = [
+            (
+                star,
+                star_counts[f'star{star}'],
+                round((star_counts[f'star{star}'] / total_reviews * 100)) 
+                if total_reviews else 0
+            ) 
+            for star in reversed(range(1, 6))  # از 5 تا 1
+        ]
+        
+        # درصد توصیهگری (4 یا 5 ستاره)
+        recommend_count = reviews.filter(rate__gte=4).count()
+        context['recommend_percentage'] = round((recommend_count / total_reviews) * 100) if total_reviews else 0
+        
         return context
+
+
+class AddOrRemoveWishlistView(LoginRequiredMixin, View):
+
+    def post(self, request, *args, **kwargs):
+        product_id = request.POST.get("product_id")
+        message = ""
+        if product_id:
+            try:
+                wishlist_item = WishlistProductModel.objects.get(
+                    user=request.user, product__id=product_id)
+                wishlist_item.delete()
+                message = "محصول از لیست علایق حذف شد"
+            except WishlistProductModel.DoesNotExist:
+                WishlistProductModel.objects.create(
+                    user=request.user, product_id=product_id)
+                message = "محصول به لیست علایق اضافه شد"
+
+        return JsonResponse({"message": message})

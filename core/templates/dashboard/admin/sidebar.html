@@ -1,5 +1,4 @@
 {% load static %}
-
 <!-- Navbar -->
  <div class="navbar-expand-lg navbar-light">
     <div id="sidebarNav" class="collapse navbar-collapse navbar-vertical">
@@ -24,18 +23,18 @@
           <!-- List -->
           <ul class="nav nav-sm nav-tabs nav-vertical mb-4">
             <li class="nav-item">
-              <a class="nav-link" href="{% url "dashboard:admin:home" %}">
+              <a class="nav-link" href="{% url 'dashboard:admin:home' %}">
                 <i class="bi-person-badge nav-icon"></i>داشبورد
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url "dashboard:admin:security-edit" %}">
+              <a class="nav-link" href="{% url 'dashboard:admin:security-edit' %}">
                 <i class="bi-shield-shaded nav-icon"></i> امنیت
               </a>
             </li>
 
             <li class="nav-item">
-              <a class="nav-link" href="{% url "dashboard:admin:profile-edit" %}">
+              <a class="nav-link" href="{% url 'dashboard:admin:profile-edit' %}">
                 <i class="bi-sliders nav-icon"></i> تنظیمات پروفایل
               </a>
             </li>
@@ -47,27 +46,27 @@
           <!-- List -->
           <ul class="nav nav-sm nav-tabs nav-vertical mb-4">
             <li class="nav-item">
-              <a class="nav-link " href="{% url "dashboard:admin:product-list" %}">
+              <a class="nav-link " href="{% url 'dashboard:admin:product-list' %}">
                 <i class="bi-shop-window nav-icon"></i> محصولات
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link " href="#">
+              <a class="nav-link " href="{% url 'dashboard:admin:order-list' %}">
                 <i class="bi-receipt-cutoff nav-icon"></i> سفارشات
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link " href="{% url "dashboard:admin:coupon-list" %}">                
+              <a class="nav-link " href="{% url 'dashboard:admin:coupon-list' %}">                
                 <i class="bi-ticket-perforated nav-icon"></i> کد تخفیف
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link " href="#">
+              <a class="nav-link " href="{% url 'dashboard:admin:review-list' %}">
                 <i class="bi-chat-square-text nav-icon"></i>نظرات
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link " href="#">
+              <a class="nav-link " href="dashboard:admin:contact-list">
                 <i class="bi-envelope nav-icon"></i> تیکت ها
               </a>
             </li>
@@ -80,12 +79,12 @@
           <!-- List -->
           <ul class="nav nav-sm nav-tabs nav-vertical mb-4">
             <li class="nav-item">
-              <a class="nav-link " href="#">
+              <a class="nav-link " href="dashboard:admin:user-list">
                 <i class="bi-person nav-icon"></i> لیست کاربران
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link " href="#">
+              <a class="nav-link " href="dashboard:admin:newsletter-list">
                 <i class="bi-newspaper nav-icon"></i> خبرنامه
               </a>
             </li>

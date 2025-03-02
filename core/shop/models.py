@@ -67,3 +67,12 @@ class ProductImageModel(models.Model):
     
     class Meta:
         ordering = ["-created_date"]
+
+
+       
+class WishlistProductModel(models.Model):
+    user = models.ForeignKey("accounts.CustomUser",on_delete=models.PROTECT)
+    product = models.ForeignKey(ProductModel,on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return self.product.title

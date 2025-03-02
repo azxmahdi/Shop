@@ -44,13 +44,19 @@ class CartSession:
         return self._cart
 
     def get_cart_items(self):
+        cart_items = {}
         for item_key in self._cart["items"]:
             item = self._cart["items"][item_key]
-            product_obj = ProductModel.objects.get(id=item["product_id"], status=ProductStatusType.publish.value)
-            item.update({"product_obj": product_obj, "total_price": item["quantity"] * product_obj.get_price()})
-    
-        return self._cart["items"]
-
+            product_obj = ProductModel.objects.get(
+                id=item["product_id"],
+                status=ProductStatusType.publish.value
+            )
+            cart_items[item_key] = {
+                **item,
+                "product_obj": product_obj,
+                "total_price": item["quantity"] * product_obj.get_price()
+            }
+        return cart_items
     def get_total_product_payment_by_discount(self, product_id):
         return self._cart["items"][str(product_id)]["quantity"] * int(ProductModel.objects.get(id=product_id).get_price())
 
@@ -59,10 +65,9 @@ class CartSession:
 
 
     def get_total_payment_amount(self):
-        return sum(item.get("total_price", 0) for item in self._cart["items"].values())
-
+        return sum(item["total_price"] for item in self.get_cart_items().values())
     def get_total_quantity(self):
-        return sum(item["quantity"] for item in self._cart["items"].values())
+        return sum(int(item["quantity"]) for item in self._cart["items"].values())
 
     def save(self):
         self.session.modified = True

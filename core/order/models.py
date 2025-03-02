@@ -1,7 +1,6 @@
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 from decimal import Decimal
-
 class OrderStatusType(models.IntegerChoices):
     pending = 1 , "در انتظار پرداخت"
     success = 2, "موفقیت آمیز"
@@ -28,11 +27,6 @@ class CouponModel(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
 
-    def is_usable(self):
-        if self.used_by.count() <= int(self.max_limit_usage):
-            return True
-        return False
-
     def __str__(self):
         return self.code
 
@@ -47,7 +41,7 @@ class OrderModel(models.Model):
     city = models.CharField(max_length=50)
     zip_code = models.CharField(max_length=50)
     
-    # payment = models.ForeignKey('payment.PaymentModel',on_delete=models.SET_NULL,null=True,blank=True)
+    payment = models.ForeignKey('payment.PaymentModel',on_delete=models.SET_NULL,null=True,blank=True)
     
     
     total_price = models.DecimalField(default=0,max_digits=10,decimal_places=0)

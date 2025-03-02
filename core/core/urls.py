@@ -28,8 +28,8 @@ urlpatterns = [
     path('shop/', include('shop.urls'), name='shop'),
     path('cart/', include('cart.urls'), name='cart'),
     path('order/', include('order.urls'), name='order'),
-
-
+    path('payment/', include('payment.urls'), name='payment'),
+    path('review/', include('review.urls'), name='review'),
 
 
 ]

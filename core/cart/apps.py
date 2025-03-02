@@ -7,4 +7,3 @@ class CartConfig(AppConfig):
 
     def ready(self):
         import cart.signals
-        return super().ready()
