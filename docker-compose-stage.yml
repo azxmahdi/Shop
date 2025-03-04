@@ -37,9 +37,8 @@ services:
       context: .
       dockerfile: ./dockerfiles/prod/django/DockerFile
     env_file:
-      - ./envs/dev/django/.env.prod
+      - ./envs/prod/django/.env.prod
     working_dir: /usr/src/app
-    # command: "gunicorn --bind 0.0.0.0:8000 --workers 17 core.wsgi:application"
     container_name: backend
     volumes:
       - ./core:/usr/src/app
@@ -70,7 +69,7 @@ services:
       context: .
       dockerfile: ./dockerfiles/prod/django/DockerFile
     env_file:
-      - ./envs/dev/django/.env.prod
+      - ./envs/prod/django/.env.prod
     command: celery -A core worker --loglevel=info 
     volumes:
       - ./core:/usr/src/app
@@ -85,7 +84,7 @@ services:
       context: .
       dockerfile: ./dockerfiles/prod/django/DockerFile
     env_file:
-      - ./envs/dev/django/.env.prod
+      - ./envs/prod/django/.env.prod
     command: celery -A core beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
     volumes:
       - ./core:/usr/src/app
