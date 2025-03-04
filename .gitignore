@@ -4,3 +4,4 @@ postgres/data/*
 
 Template-Shop/*
 core/media/*
+core/static/*

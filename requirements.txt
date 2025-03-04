@@ -29,3 +29,7 @@ faker
 
 # text editor
 django-ckeditor
+
+
+# production
+gunicorn

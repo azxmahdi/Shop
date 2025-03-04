@@ -27,8 +27,10 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-i(+^n*73lepb8-2ge-c%+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="*", cast= lambda v: [item.strip() for item in v.split(',') ])
-
+ALLOWED_HOSTS = [
+    'backend',
+    '127.0.0.1'
+]
 
 # Application definition
 
@@ -143,13 +145,14 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'static'
-STATICFILES_DIRS = [
-    BASE_DIR / 'statics'
-]
-MEDIA_URL = 'media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "static"
+STATICFILES_DIRS = [BASE_DIR / "statics"]
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
@@ -181,9 +184,9 @@ CKEDITOR_JQUERY_URL = 'https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery
 
 CKEDITOR_CONFIGS = {
     'default': {
-        'toolbar': 'full',  # استفاده از تمام ابزارهای CKEditor
-        'height': 300,  # ارتفاع ویرایشگر
-        'width': '100%',  # عرض ویرایشگر
+        'toolbar': 'full',  
+        'height': 300, 
+        'width': '100%',
     },
 }
 
@@ -192,7 +195,3 @@ CKEDITOR_CONFIGS = {
 # payment gateway settings
 MERCHANT_ID = config("MERCHANT_ID",default="4ced0a1e-4ad8-4309-9668-3ea3ae8e8897")
 SANDBOX_MODE = config("SANDBOX_MODE", cast=bool, default=True)
-
-
-
-# celery beat
