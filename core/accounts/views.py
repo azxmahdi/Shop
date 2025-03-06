@@ -11,11 +11,11 @@ from django.contrib.auth.hashers import make_password
 from django.contrib import messages
 from django.shortcuts import redirect, render
 
-User = get_user_model()
 
 from .models import Profile
 from .forms import SignInForm, SignUpForm, ResetPasswordForm, ChangePasswordTokenForm
 from .tasks import send_email
+
 
 User = get_user_model()
 
@@ -49,7 +49,7 @@ class LoginView(FormView):
             login(self.request, user)
             return super().form_valid(form)
         else:  
-            messages.error(self.request, "This user does not exist.")
+            messages.error(self.request, "اطلاعات وارد شده درست نیست")
             return self.form_invalid(form)
 
     def form_invalid(self, form):
@@ -57,42 +57,32 @@ class LoginView(FormView):
 
 
 class SignUpView(FormView):
-    template_name = "accounts/sign_up.html"
+    template_name = "accounts/sign-up.html"
     form_class = SignUpForm
     success_url = reverse_lazy("accounts:login")
 
     def form_valid(self, form):
         email = form.cleaned_data["email"]
-        first_name = form.cleaned_data["first_name"]
-        last_name = form.cleaned_data["last_name"]
-        image = form.cleaned_data["image"]
         password = form.cleaned_data["password"]
         confirm_password = form.cleaned_data["confirm_password"]
 
         if not User.objects.filter(email=email).exists():
             if password == confirm_password:
                 user = User.objects.create_user(email=email, password=password)
-                profile = Profile.objects.get(user=user)
-                profile.first_name = first_name
-                profile.last_name = last_name
-                if image:
-                    profile.image = image
-                profile.save()
                 user = authenticate(request=self.request, email=email, password=password)
                 login(self.request, user)
-                return redirect('accounts:verified_email')
+                return redirect('website:index')
             else:
                 messages.error(
                     self.request,
-                    "New password and confirm password do not match.",
+                    "رمز عبور جدید و تأییدیه آن مطابقت ندارند.",
                 )
-                return redirect('accounts:sign_up')
+                return redirect('accounts:sign-up')
         else:
-            messages.error(self.request, "This username already exists.")
-            return redirect('accounts:sign_up')
+            messages.error(self.request, "کاربری با ایمیل وارد شده وجود دارد.")
+            return redirect('accounts:sign-up')
 
     def form_invalid(self, form):
-        messages.error(self.request, "The entered captcha does not match.")
         return super().form_invalid(form)
 
 
@@ -115,28 +105,28 @@ def verify_activation_token(token, expiration=60 * 60):
     return email
     
 class SendMailRestPassword(FormView):
-    template_name = 'accounts/send_mail_reset_password.html'
+    template_name = 'accounts/send-mail-reset-password.html'
     form_class = ResetPasswordForm
     success_url = reverse_lazy('website:index')
 
     def form_valid(self, form):
         email_to = form.cleaned_data["email"]
         token = generate_activation_token(email_to)
-        url = reverse('accounts:reset_password', args=[token])
+        url = reverse('accounts:reset-password', args=[token])
         full_url = self.request.build_absolute_uri(url)
-        tpl_name = 'mail/reset_password.tpl'
+        tpl_name = 'mail/reset-password.tpl'
         try:
             profile = Profile.objects.get(user__email=email_to)
         except Profile.DoesNotExist:
-            messages.error(self.request, 'The email you entered does not exist')
-            return redirect('accounts:send_mail_reset_password')
+            messages.error(self.request, 'کاربری با این ایمیل وجود ندارد')
+            return redirect('accounts:send-mail-reset-password')
         context = {'name':profile.last_name, 'url':full_url}
         email = 'azxmahdi22@gmail.com'
         to = [email_to,]
         send_email.delay(tpl_name, context, email, to)
 
-        messages.success(self.request,"Please check your email")
-        return redirect('accounts:send_mail_reset_password')
+        messages.success(self.request,"لطفا ایمیل خود را چک کنید ")
+        return redirect('accounts:send-mail-reset-password')
     
     def form_invalid(self, form):
         return super().form_invalid(form) 
@@ -144,24 +134,24 @@ class SendMailRestPassword(FormView):
 class RestPassword(View):
     def get(self, request, token):
         if not token:
-            return render(request, 'accounts/change_password_token.html', {'error': 'Token not found'})
+            return render(request, 'accounts/change_password_token.html', {'error': 'توکن پیدا نشد'})
 
         email = verify_activation_token(token)
 
         if email is None:
-            return render(request, 'accounts/change_password_token.html', {'error': 'The token is invalid or expired.'})
+            return render(request, 'accounts/change_password_token.html', {'error': 'زمان تغییر پسورد به پایان رسیده است. لطفا مجددا ایمیل بازنشانی پسورد را ارسال کنید'})
 
         form = ChangePasswordTokenForm()
         return render(request, 'accounts/change_password_token.html', {'form': form})
 
     def post(self, request, token):
         if not token:
-            return render(request, 'accounts/change_password_token.html', {'error': 'Token not found'})
+            return render(request, 'accounts/change_password_token.html', {'error': 'توکن پیدا نشد'})
 
         email = verify_activation_token(token)
 
         if email is None:
-            return render(request, 'accounts/change_password_token.html', {'error': 'The token is invalid or expired.'})
+            return render(request, 'accounts/change_password_token.html', {'error': 'زمان تغییر پسورد به پایان رسیده است. لطفا مجددا ایمیل بازنشانی پسورد را ارسال کنید'})
 
         form = ChangePasswordTokenForm(request.POST)
 
@@ -170,7 +160,7 @@ class RestPassword(View):
             confirm_password = form.cleaned_data['confirm_password']
 
             if new_password != confirm_password:
-                messages.error(request, "Passwords do not match!")
+                messages.error(request,"رمز عبور جدید و تأییدیه آن مطابقت ندارند.")
                 return render(request, 'accounts/change_password_token.html', {'form': form})
 
             user = User.objects.get(email=email)
@@ -179,6 +169,6 @@ class RestPassword(View):
 
             return redirect('accounts:login')
 
-        return render(request, 'accounts/change_password_token.html', {'form': form})
-
+        else:
+            return render(request, 'accounts/change_password_token.html', {'form': form})
 

@@ -1,0 +1,35 @@
+{% load static %}
+<!DOCTYPE html>
+<!-- Coding By CodingNepal - codingnepalweb.com -->
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> {% block subject %} {% endblock %} </title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{% static 'accounts/css/login/style.css' %}">
+
+    <!-- Boxicons CSS -->
+    <link href='https://unpkg.com/boxicons@2.1.2/css/boxicons.min.css' rel='stylesheet'>
+
+    <link rel="stylesheet" href="{% static 'vendor/toastify/toastify.css' %}">
+
+
+
+</head>
+
+{% block body %} {% endblock %}
+
+
+    <!-- JavaScript -->
+    <script src="{% static 'accounts/js/script.js' %}"></script>
+    <script src=" {% static 'vendor/toastify/toastify.js' %} "></script>
+
+    {% include 'messages.html' %}
+
+</body>
+
+</html>

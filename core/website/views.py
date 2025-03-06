@@ -1,9 +1,10 @@
-from django.views.generic import TemplateView, FormView
+from django.views.generic import TemplateView, FormView, CreateView
 from django.contrib import messages
 from django.urls import reverse_lazy
+from django.shortcuts import redirect
 
-from .forms import ContactForm
-from .models import TeamMembers
+from .forms import ContactForm, NewsLetterForm
+from .models import TeamMembers, NewsLetter
 
 
 class IndexTemplateView(TemplateView):
@@ -28,9 +29,25 @@ class ContactTemplateView(FormView):
 
     def form_valid(self, form):
         form.save()
-        messages.success(self.request, "Our colleagues will contact you soon")
+        messages.success(self.request, "همکاران ما به زودی با شما تماس خواهند گرفت")
         return super().form_valid(form)
 
     def form_invalid(self, form):
-        messages.error(self.request, "The form is not valid")
+        messages.error(self.request, "فرم معتبر نیست")
         return super().form_invalid(form)
+    
+
+class NewsletterView(CreateView):
+    http_method_names = ['post']
+    form_class = NewsLetterForm
+    success_url = '/'
+
+    def form_valid(self, form):
+        messages.success(
+            self.request, 'از ثبت نام شما ممنونم، اخبار جدید رو براتون ارسال می کنم 😊👍')
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(
+            self.request, 'مشکلی در ارسال فرم شما وجود داشت که می دونم برا چی بود!! چون ربات هستید!')
+        return redirect('website:index')

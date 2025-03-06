@@ -34,7 +34,6 @@ class AdminSecurityEditView(LoginRequiredMixin, HasAdminAccessPermission, FormVi
         return redirect('dashboard:admin:security-edit')
 
     def form_invalid(self, form):
-        messages.error(self.request, _("لطفا اطلاعات را به درستی وارد کنید."))
         return super().form_invalid(form)
 
 
@@ -47,9 +46,8 @@ class AdminProfileEditView(UpdateView):
     
 
     def form_valid(self, form):
-        # اگر کاربر دکمه "حذف کردن" را زده باشد
         if form.cleaned_data.get('delete_image'):
-            form.instance.image = 'profile/default.png'  # تصویر پیش‌فرض
+            form.instance.image = 'profile/default.png'  
         messages.success(self.request, "بروز رسانی پروفایل با موفقیت انجام شد") 
         return super().form_valid(form)
     

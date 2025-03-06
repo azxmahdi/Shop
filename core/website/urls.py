@@ -10,4 +10,5 @@ urlpatterns = [
     path('', views.IndexTemplateView.as_view(), name='index'),
     path('about/', views.AboutTemplateView.as_view(), name='about'),
     path('contact/', views.ContactTemplateView.as_view(), name='contact'),
+    path("newsletter/", views.NewsletterView.as_view(), name="newsletter"),
 ]

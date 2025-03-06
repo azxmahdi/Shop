@@ -7,6 +7,7 @@
 {% block content %}
   <!-- ========== MAIN CONTENT ========== -->
   <main id="content" role="main">
+    
     <!-- Hero -->
     <div class="position-relative">
       <!-- Swiper Main Slider -->
@@ -382,6 +383,39 @@
     <!-- End Card Grid -->
 
     {% latest_products %}
+
+    <!-- Subscribe -->
+    <div class="bg-light">
+      <div class="container content-space-2">
+        <div class="w-md-75 w-lg-50 text-center mx-md-auto">
+          <div class="row justify-content-lg-between">
+            <!-- Heading -->
+            <div class="mb-5">
+              <span class="text-cap">ثبت نام</span>
+              <h2>اخبار جدید را دریافت کنید</h2>
+            </div>
+            <!-- End Heading -->
+
+            <form method="post" action="{% url 'website:newsletter' %}">
+                  {% csrf_token %}
+              <!-- Input Card -->
+              <div class="input-card input-card-pill input-card-sm border mb-3">
+                <div class="input-card-form">
+                  <input class="form-control border-0 me-1" type="text" placeholder="نام"
+                                        name="first_name" hidden="">
+                  <input type="email" class="form-control form-control-lg" name="email" placeholder="ایمیل خود را وارد کنید" aria-label="ایمیل خود را وارد کنید">
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg rounded-pill">ثبت نام</button>
+              </div>
+              <!-- End Input Card -->
+            </form>
+
+            <p class="small">می توانید در هر زمانی اشتراک خود را لغو کنید <a href="#">سیاست حفظ حریم خصوصی</a> ما را بخوانید</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- End Subscribe -->
 
 {% endblock%}
 

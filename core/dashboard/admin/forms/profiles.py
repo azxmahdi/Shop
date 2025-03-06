@@ -3,7 +3,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
-from ...validators import ChangePasswordValidator
+from accounts.validators import PasswordValidator
 from accounts.models import Profile
 
 
@@ -22,7 +22,7 @@ class AdminChangePasswordForm(forms.Form):
         self.fields['new_password'].widget.attrs['placeholder'] = "پسورد جایگزین خود را وارد نمایید"
         self.fields['confirm_password'].widget.attrs['placeholder'] = "پسورد جایگزین خود را مجدد وارد نمایید"
 
-        self.fields['new_password'].validators.append(ChangePasswordValidator().validate)
+        self.fields['new_password'].validators.append(PasswordValidator().validate)
 
     def clean(self):
         cleaned_data = super().clean()

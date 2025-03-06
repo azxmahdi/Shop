@@ -22,4 +22,4 @@ class Command(BaseCommand):
                 title=title,
                 slug=slug
             )
-            self.stdout.write(self.style.SUCCESS(f'Created category: {category.title}'))
+        self.stdout.write(self.style.SUCCESS(f'Successfully generated {count} fake categories'))

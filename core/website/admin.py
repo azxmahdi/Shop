@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import ContactModel, TeamMembers, JobTitle
+from .models import ContactModel, TeamMembers, JobTitle, NewsLetter
 
 
 @admin.register(ContactModel)
@@ -16,3 +16,9 @@ class TeamMembersAdmin(admin.ModelAdmin):
 @admin.register(JobTitle)
 class JobTitleAdmin(admin.ModelAdmin):
     list_display = ('id', 'title')
+
+
+
+@admin.register(NewsLetter)
+class NewsLetterAdmin(admin.ModelAdmin):
+    list_display = ("id", "email", "created_date")

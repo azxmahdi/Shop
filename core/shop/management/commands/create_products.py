@@ -9,14 +9,24 @@ from django.core.files import File
  
 BASE_DIR = Path(__file__).resolve().parent
 
-
 class Command(BaseCommand):
     help = 'Generate fake products'
 
-    def handle(self, *args, **options):
+    def add_arguments(self, parser):
+        parser.add_argument('count', type=int, help='Number of products to create')
+
+    def handle(self, *args, **kwargs):
+        count = kwargs['count']
         fake = Faker(locale="fa_IR")
-        user = CustomUser.objects.get(id=1)
-        # List of images
+        try: 
+            user = CustomUser.objects.get(email="create_products@example.com")
+        except CustomUser.DoesNotExist:
+
+            user = CustomUser.objects.create_superuser(
+                email="create_products@example.com",
+                password="CreateProducts7100865@",  
+            )
+        
         image_list = [
             "./img/img1.jpg",
             "./img/img2.jpg",
@@ -26,12 +36,10 @@ class Command(BaseCommand):
             "./img/img6.jpg",
             "./img/img7.jpg",
             "./img/img8.jpg",
-            # Add more image filenames as needed
         ]
 
         categories = ProductCategoryModel.objects.all()
-
-        for _ in range(100):  # Generate 10 fake products
+        for _ in range(count): 
             user = user  
             num_categories = random.randint(1, 4)
             selected_categoreis = random.sample(list(categories), num_categories)
@@ -42,7 +50,7 @@ class Command(BaseCommand):
             description = fake.paragraph(nb_sentences=10)
             brief_description= fake.paragraph(nb_sentences=1)
             stock = fake.random_int(min=0, max=10)
-            status = random.choice(ProductStatusType.choices)[0]  # Replace with your actual status choices
+            status = random.choice(ProductStatusType.choices)[0]
             price = fake.random_int(min=10000, max=100000)
             discount_percent = fake.random_int(min=0, max=50)
 
@@ -59,5 +67,4 @@ class Command(BaseCommand):
                 discount_percent=discount_percent,
             )
             product.category.set(selected_categoreis)
-
-        self.stdout.write(self.style.SUCCESS('Successfully generated 10 fake products'))
+        self.stdout.write(self.style.SUCCESS(f'Successfully generated {count} fake products'))
