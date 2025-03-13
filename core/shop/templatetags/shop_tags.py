@@ -24,3 +24,13 @@ def similar_products(context,product):
         status=ProductStatusType.publish.value,category__in=product_categories).distinct().exclude(id=product.id).order_by("-created_date")[:4]
     wishlist_items =  WishlistProductModel.objects.filter(user=request.user).values_list("product__id",flat=True) if request.user.is_authenticated else []
     return {"similar_prodcuts": similar_prodcuts,"request":request,"wishlist_items":wishlist_items}
+
+
+
+from django import template
+
+register = template.Library()
+
+@register.inclusion_tag('includes/category_node.html')
+def render_category(node):
+    return {'node': node}

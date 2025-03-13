@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+{% load static %}
+{% load shop_tags %}
+  {% block content %}
+    <!-- Breadcrumb -->
+    <div class="bg-light">
+      <div class="container py-4">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item">
+              <a href="/index.html">خرید کنید</a>
+            </li>
+            <li class="breadcrumb-item active pe-2" aria-current="page">دسته بندی ها</li>
+          </ol>
+        </nav>
+        <!-- End Breadcrumb -->
+      </div>
+    </div>
+    <!-- End Breadcrumb -->
+
+    <!-- Categories Section -->
+    <div class="container content-space-t-1 content-space-t-md-2 content-space-b-2">
+      <div class="row">
+        <div class="col-lg-3 mb-5 mb-lg-0">
+          <!-- Navbar -->
+          <div class="navbar-expand-lg">
+            <!-- Navbar Toggle -->
+            <div class="d-grid">
+              <button type="button" class="navbar-toggler btn btn-white rounded mb-3" data-bs-toggle="collapse" data-bs-target="#navbarVerticalNavMenu" aria-label="Toggle navigation" aria-expanded="false" aria-controls="navbarVerticalNavMenu">
+                <span class="d-flex justify-content-between align-items-center">
+                  <span class="text-dark">منو</span>
+
+                  <span class="navbar-toggler-default">
+                    <i class="bi-list"></i>
+                  </span>
+
+                  <span class="navbar-toggler-toggled">
+                    <i class="bi-x"></i>
+                  </span>
+                </span>
+              </button>
+            </div>
+            <!-- End Navbar Toggle -->
+
+            <!-- Navbar Collapse -->
+            <div id="navbarVerticalNavMenu" class="collapse navbar-collapse">
+              <div id="shopNavCategories" class="nav nav-pills nav-vertical">
+                {% for category_node in category_tree %}
+                  {% include "includes/category_node.html" with node=category_node %}
+                {% endfor %}
+              </div>
+            </div>
+            <!-- End Navbar Collapse -->
+          </div>
+          <!-- End Navbar -->
+        </div>
+        <!-- End Col -->
+
+        <div class="col-lg-9">
+          <!-- Banner -->
+          <div class="bg-img-start rounded-2 p-5 mb-5" style="background-image: url({% static 'img/1920x800/img9.jpg' %});">
+            <div class="row align-items-md-center">
+              <div class="col-sm mb-3 mb-md-0">
+                <h1 class="h4 mb-0">با سفارشات بالای 50 تومان تا 30 درصد صرفه جویی کنید</h1>
+              </div>
+              <!-- End Col -->
+
+              <div class="col-sm-auto">
+                <a class="btn btn-primary btn-sm btn-transition rounded-pill" href="#">اکنون خرید کنید</a>
+              </div>
+              <!-- End Col -->
+            </div>
+            <!-- End Row -->
+          </div>
+          <!-- End Banner -->
+
+          <div class="row">
+            <div class="col-sm-6 mb-4">
+              <!-- Card -->
+              <div class="card card-bordered shadow-none overflow-hidden">
+                <div class="card-body d-flex align-items-center border-bottom p-0">
+                  <div class="w-65 border-end">
+                    <img class="img-fluid" src="{% static 'img/600x600/img10.jpg' %}" alt="Image Description">
+                  </div>
+                  <div class="w-35">
+                    <div class="border-bottom">
+                      <img class="img-fluid" src="{% static 'img/600x600/img12.jpg' %}" alt="Image Description">
+                    </div>
+                    <img class="img-fluid" src="{% static 'img/600x600/img11.jpg' %}" alt="Image Description">
+                  </div>
+                </div>
+
+                <div class="card-footer text-center">
+                  <h3 class="card-title">لباس مردانه</h3>
+                  <p class="card-text text-muted small">شروع از {{min_price_mens_clothing.min_price}} تومان</p>
+                  <a class="btn btn-outline-primary btn-sm btn-transition rounded-pill px-6" href="{% url 'shop:product-grid' %}?category_id={{ min_price_mens_clothing.id }}">مشاهده همه</a>
+                </div>
+              </div>
+              <!-- End Card -->
+            </div>
+            <!-- End Col -->
+
+            <div class="col-sm-6 mb-4">
+              <!-- Card -->
+              <div class="card card-bordered shadow-none overflow-hidden">
+                <div class="card-body d-flex align-items-center border-bottom p-0">
+                  <div class="w-65 border-end">
+                    <img class="img-fluid" src="{% static 'img/600x600/img15.jpg' %}" alt="Image Description">
+                  </div>
+                  <div class="w-35">
+                    <div class="border-bottom">
+                      <img class="img-fluid" src="{% static 'img/600x600/img13.jpg' %}" alt="Image Description">
+                    </div>
+                    <img class="img-fluid" src="{% static 'img/600x600/img14.jpg' %}" alt="Image Description">
+                  </div>
+                </div>
+
+                <div class="card-footer text-center">
+                  <h3 class="card-title">وسایل دیجیتال</h3>
+                  <p class="card-text text-muted small">شروع از {{ min_price_mobile_phones.min_price }} تومان</p>
+                  <a class="btn btn-outline-primary btn-sm btn-transition rounded-pill px-6" href="{% url 'shop:product-grid' %}?category_id={{ min_price_mobile_phones.id }}">مشاهده همه</a>
+                </div>
+              </div>
+              <!-- End Card -->
+            </div>
+            <!-- End Col -->
+          </div>
+          <!-- End Row -->
+      
+          <div class="row row-cols-sm-2 row-cols-md-3">
+            {% for poplar_product in poplar_products %}
+                <div class="col mb-4">
+                    <!-- Card -->
+                    <div class="card card-bordered shadow-none text-center h-100">
+                        <div class="card-pinned">
+                            <img class="card-img-top" src="{{poplar_product.image.url}}" alt="Image Description">
+                            {% if poplar_product.is_new %}
+                            <div class="card-pinned-top-start">
+                                <span class="badge bg-success rounded-pill">جدید</span>
+                            </div>
+                            {% endif %}
+                            {% if poplar_product.stock == 0 %}
+                            <div class="card-pinned-top-start">
+                                <span class="badge bg-danger rounded-pill">اتمام موجودی</span>
+                            </div>
+                            {% endif %}
+                            <div class="card-pinned-top-end">
+                                {% if request.user.is_authenticated %}
+                                <button type="button"
+                                    class="btn btn-outline-secondary btn-xs btn-icon rounded-circle {% if poplar_product.id in wishlist_items %} active {% endif %} "
+                                    data-bs-toggle="tooltip" data-bs-placement="top" title="افزودن به علایق"
+                                    onclick="addToWishlist(this,`{{poplar_product.id}}`)">
+                                    <i class="bi-heart"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="mb-2">
+                                {% for category in poplar_product.category.all %}
+                                <a class="link-sm link-secondary" href="#"> {{category.title}} </a>
+                                {% if not forloop.last %}
+                                ,
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+
+                            <h4 class="card-title">
+                                <a class="text-dark"
+                                    href="{% url 'shop:product-detail' slug=poplar_product.slug %}">{{poplar_product.title}}</a>
+                            </h4>
+                            {% if poplar_product.is_discounted %}
+                            <p class="card-text text-dark fs-4">
+                                <span class="formatted-price">{{poplar_product.get_price}}</span>
+                                <span
+                                    class="text-body me-1 fs-6 formatted-price text-decoration-line-through">{{poplar_product.price}}</span>
+                            </p>
+                            {% else %}
+                            <p class="card-text text-dark fs-4 formatted-price"> {{poplar_product.price}}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="card-footer pt-0">
+                            <!-- Rating -->
+                            <a class="d-inline-flex align-items-center mb-3" href="#">
+                                {% for i in "12345" %}
+                                {% if i|add:0 <= poplar_product.avg_rate %} <span><i
+                                        class="bi bi-star-fill star-rate"></i></span>
+                                    {% else %}
+                                    <span><i class="bi bi-star star-rate"></i></span>
+                                    {% endif %}
+
+                                    {% endfor %}
+                                    <span class="ms-1">{{poplar_product.avg_rate}}/5</span>
+                            </a>
+                            <!-- End Rating -->
+                            {% if poplar_product.stock != 0 %}
+                            <button type="button" class="btn btn-outline-primary btn-sm btn-transition rounded-pill"
+                                onclick="addToCart('{{poplar_product.id}}')">افزودن به سبد
+                                خرید</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <!-- End Card -->
+                </div>
+                {% empty %}
+                <div class="row text-center w-100 py-5">
+                    <p class="text-center">هیچ کالایی برای نمایش وجود ندارد</p>
+                </div>
+                <!-- End Col -->
+                {% endfor %}
+          </div>
+          <!-- End Row -->
+
+          <div class="row">
+            <div class="col-sm-6 mb-4">
+              <!-- Card -->
+              <div class="card card-bordered shadow-none overflow-hidden">
+                <div class="card-body d-flex align-items-center border-bottom p-0">
+                  <div class="w-65 border-end">
+                    <img class="img-fluid" src="{% static 'img/600x600/img6.jpg' %}" alt="Image Description">
+                  </div>
+                  <div class="w-35">
+                    <div class="border-bottom">
+                      <img class="img-fluid" src="{% static 'img/600x600/img5.jpg' %}" alt="Image Description">
+                    </div>
+                    <img class="img-fluid" src="{% static 'img/600x600/img4.jpg' %}" alt="Image Description">
+                  </div>
+                </div>
+
+                <div class="card-footer text-center">
+                  <h3 class="card-title">لوازم آرایشی</h3>
+                  <p class="card-text text-muted small">شروع از {{min_price_cosmetics.min_price}} تومان</p>
+                  <a class="btn btn-outline-primary btn-sm btn-transition rounded-pill px-6" href="{% url 'shop:product-grid' %}?category_id={{ min_price_cosmetics.id }}">مشاهده همه</a>
+                </div>
+              </div>
+              <!-- End Card -->
+            </div>
+            <!-- End Col -->
+
+            <div class="col-sm-6 mb-4">
+              <!-- Card -->
+              <div class="card card-bordered shadow-none overflow-hidden">
+                <div class="card-body d-flex align-items-center border-bottom p-0">
+                  <div class="w-65 border-end">
+                    <img class="img-fluid" src="{% static 'img/600x600/img8.jpg' %}" alt="Image Description">
+                  </div>
+                  <div class="w-35">
+                    <div class="border-bottom">
+                      <img class="img-fluid" src="{% static 'img/600x600/img7.jpg' %}" alt="Image Description">
+                    </div>
+                    <img class="img-fluid" src="{% static 'img/600x600/img9.jpg' %}" alt="Image Description">
+                  </div>
+                </div>
+
+                <div class="card-footer text-center">
+                  <h3 class="card-title">لباس های زنانه</h3>
+                  <p class="card-text text-muted small">شروع از {{min_price_womens_clothing.min_price}} </p>
+                  <a class="btn btn-outline-primary btn-sm btn-transition rounded-pill px-6" href="{% url 'shop:product-grid' %}?category_id={{ min_price_womens_clothing.id }}">مشاهده همه</a>
+                </div>
+              </div>
+              <!-- End Card -->
+            </div>
+            <!-- End Col -->
+          </div>
+          <!-- End Row -->
+        </div>
+        <!-- End Col -->
+      </div>
+      <!-- End Row -->
+    </div>
+    <!-- End Categories Section -->
+
+    <!-- CTA -->
+    <div class="bg-img-center" style="background-image: url({% static 'img/1920x800/img8.jpg' %});">
+      <div class="container content-space-2 content-space-lg-3">
+        <div class="w-md-65 w-lg-35">
+          <div class="mb-4">
+            <h2 class="h1 text-white">غرورت را بپوش</h2>
+            <p class="text-white">از نور خورشید سبقت بگیرید و تمرین خود را با رنگ های خاکستری، سفید و روشن های تیره تازه کنید.</p>
+          </div>
+          <a class="btn btn-light btn-transition rounded-pill" href="{% url "shop:product-grid" %}">خرید از مجموعه</a>
+        </div>
+      </div>
+    </div>
+    <!-- End CTA -->
+  </main>
+  <!-- ========== END MAIN CONTENT ========== -->
+  {% endblock content %}

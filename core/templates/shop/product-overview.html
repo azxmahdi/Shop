@@ -11,9 +11,7 @@
     <div class="container content-space-t-1 content-space-t-sm-2">
       <div class="row">
         <div class="col-md-7 mb-7 mb-md-0">
-          {{product.product_images.all}}
           <div class="pe-md-4">
-
               <div class="card-pinned">
 
                   <!-- Swiper Main Slider -->
@@ -60,10 +58,7 @@
                                   </a>
                                 {% endfor %}
                               </div>
-                              <!-- End Slide -->
-
-
-                              <!-- End Slide -->
+                              <!-- End Slide -->إت
                           </div>
                       </div>
                   </div>
@@ -75,6 +70,13 @@
 
 
         <div class="col-md-5">
+          <a class="d-flex gap-1 mb-4" href="#reviewSection">
+              {% for ancestor in product.category.get_ancestors %}
+                <a href="{% url 'shop:product-grid' %}?category_id={{ ancestor.id }}">{{ ancestor.title }}</a> &gt;
+                {% endfor %}
+                <a href="{% url 'shop:product-grid' %}?category_id={{ product.category.id }}">{{ product.category.title }}</a> &gt;
+                <span>{{ product.title }}</span>
+          </a>
           <!-- Rating -->
           <a class="d-flex gap-1 mb-4" href="#reviewSection">
             {% for i in "12345" %}
@@ -304,7 +306,7 @@
     <!-- End Content -->
 
 
-  {% similar_products product %}
+  {% comment %} {% similar_products product %} {% endcomment %}
 
     <!-- Review Section -->
     <div id="reviewSection" class="container content-space-b-2 content-space-b-lg-3">

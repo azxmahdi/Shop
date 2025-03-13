@@ -2,11 +2,11 @@ import random
 from django.core.management.base import BaseCommand
 from django.utils.text import slugify
 from faker import Faker
-from shop.models import ProductModel, ProductCategoryModel,ProductStatusType
-from accounts.models import CustomUser, UserType
+from shop.models import ProductModel, ProductCategoryModel, ProductStatusType
+from accounts.models import CustomUser
 from pathlib import Path
 from django.core.files import File
- 
+
 BASE_DIR = Path(__file__).resolve().parent
 
 class Command(BaseCommand):
@@ -18,14 +18,12 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         count = kwargs['count']
         fake = Faker(locale="fa_IR")
-        try: 
-            user = CustomUser.objects.get(email="create_products@example.com")
-        except CustomUser.DoesNotExist:
-
-            user = CustomUser.objects.create_superuser(
-                email="create_products@example.com",
-                password="CreateProducts7100865@",  
-            )
+        
+        # ایجاد یا گرفتن کاربر
+        user, created = CustomUser.objects.get_or_create(
+            email="create_products@example.com",
+            defaults={'password': "CreateProducts7100865@"}
+        )
         
         image_list = [
             "./img/img1.jpg",
@@ -38,24 +36,36 @@ class Command(BaseCommand):
             "./img/img8.jpg",
         ]
 
-        categories = ProductCategoryModel.objects.all()
-        for _ in range(count): 
-            user = user  
-            num_categories = random.randint(1, 4)
-            selected_categoreis = random.sample(list(categories), num_categories)
-            title = ' '.join([fake.word() for _ in range(1,3)])
-            slug = slugify(title,allow_unicode=True)
+        # دریافت دسته‌بندی‌های پدر
+        parent_categories = ProductCategoryModel.objects.filter(parent__isnull=False)
+
+        for _ in range(count):
+            if parent_categories:  # اطمینان از وجود دسته‌بندی‌های پدر
+                selected_category = random.choice(parent_categories)
+            else:
+                selected_category = None  # یا مدیریت حالت عدم وجود دسته‌بندی
+
+            title = ' '.join([fake.word() for _ in range(1, 3)])
+            slug = slugify(title, allow_unicode=True)
             selected_image = random.choice(image_list)
-            image_obj = File(file=open(BASE_DIR / selected_image,"rb"),name=Path(selected_image).name)
+            image_obj = File(open(BASE_DIR / selected_image, "rb"), name=Path(selected_image).name)
             description = fake.paragraph(nb_sentences=10)
-            brief_description= fake.paragraph(nb_sentences=1)
+            brief_description = fake.paragraph(nb_sentences=1)
             stock = fake.random_int(min=0, max=10)
-            status = random.choice(ProductStatusType.choices)[0]
+
+            # اطمینان از وجود انواع وضعیت محصول
+            if ProductStatusType.choices:
+                status = random.choice(ProductStatusType.choices)[0]
+            else:
+                status = 0  # یا هر وضعیت پیش‌فرض دیگر
+
             price = fake.random_int(min=10000, max=100000)
             discount_percent = fake.random_int(min=0, max=50)
 
-            product = ProductModel.objects.create(
+            # ایجاد محصول
+            ProductModel.objects.create(
                 user=user,
+                category=selected_category,  # اختصاص دسته‌بندی انتخاب‌شده
                 title=title,
                 slug=slug,
                 image=image_obj,
@@ -66,5 +76,5 @@ class Command(BaseCommand):
                 price=price,
                 discount_percent=discount_percent,
             )
-            product.category.set(selected_categoreis)
+
         self.stdout.write(self.style.SUCCESS(f'Successfully generated {count} fake products'))

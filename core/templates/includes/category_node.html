@@ -1,0 +1,26 @@
+{% if node.children %}
+  <!-- دسته‌های والد با زیرمنو -->
+  <div class="nav-item">
+    <a class="nav-link dropdown-toggle" 
+       data-bs-toggle="collapse" 
+       data-bs-target="#collapse-{{ node.category.slug }}" style="font-weight: bold; font-size: 1.2em;">
+      {{ node.category.title }}
+    </a>
+    
+    <div class="collapse" id="collapse-{{ node.category.slug }}">
+      <div class="nav flex-column">
+        <a class="nav-link " href="{% url 'shop:product-grid' %}?category_id={{ node.category.id }}" >
+          همه محصولات {{ node.category.title }}
+        </a>
+        {% for child in node.children %}
+          {% include "includes/category_node.html" with node=child %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+{% else %}
+  <!-- دسته‌های فرزند بدون زیرمنو -->
+  <a class="nav-link " href="{% url 'shop:product-grid' %}?category_id={{ node.category.id }}" >
+    {{ node.category.title }}
+  </a>
+{% endif %}

@@ -173,12 +173,21 @@
 
             <div class="row row-cols-sm-2 row-cols-md-3 mb-10">
                 {% for object in object_list %}
-                <div class="col mb-4">
+                <div class="col-sm-6 mb-4">
                     <!-- Card -->
                     <div class="card card-bordered shadow-none text-center h-100">
                         <div class="card-pinned">
                             <img class="card-img-top" src="{{object.image.url}}" alt="Image Description">
-
+                            {% if object.is_new %}
+                            <div class="card-pinned-top-start">
+                                <span class="badge bg-success rounded-pill">جدید</span>
+                            </div>
+                            {% endif %}
+                            {% if object.stock == 0 %}
+                            <div class="card-pinned-top-start">
+                                <span class="badge bg-danger rounded-pill">اتمام موجودی</span>
+                            </div>
+                            {% endif %}
                             <div class="card-pinned-top-end">
                                 {% if request.user.is_authenticated %}
                                 <button type="button"
@@ -230,10 +239,11 @@
                                     <span class="ms-1">{{object.avg_rate}}/5</span>
                             </a>
                             <!-- End Rating -->
-
+                            {% if object.stock != 0 %}
                             <button type="button" class="btn btn-outline-primary btn-sm btn-transition rounded-pill"
                                 onclick="addToCart('{{object.id}}')">افزودن به سبد
                                 خرید</button>
+                            {% endif %}
                         </div>
                     </div>
                     <!-- End Card -->
