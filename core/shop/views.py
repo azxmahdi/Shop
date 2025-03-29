@@ -1,55 +1,88 @@
 from django.views.generic import ListView, DetailView, View, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
-from django.db.models import Q, Count, Prefetch
+from django.db.models import Q, Count, Prefetch, OuterRef, Exists, Min, Max
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.core.cache import cache
-from .models import ProductModel, ProductStatusType, ProductCategoryModel, ProductImageModel, WishlistProductModel
+from collections import defaultdict
+from .models import ProductModel, ProductStatusType, ProductCategoryModel, ProductImageModel, WishlistProductModel, ProductFeature
 from cart.cart import CartSession
 from review.models import ReviewModel, ReviewStatusType
-
+from django.utils.datastructures import MultiValueDictKeyError
 
 class ShopProductGridView(ListView):
     template_name = 'shop/products-grid.html'
     paginate_by = 9
 
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['total_items'] = self.get_queryset().count()
+        context['total_items'] = self.object_list.count()
         context['categories'] = ProductCategoryModel.objects.all()
+        
+        current_filters = self.request.GET.copy()
+        if 'page' in current_filters:
+            del current_filters['page']
+        context['current_filters'] = current_filters
+        
+        selected_category_id = self.request.GET.get('category_id')
+        if selected_category_id:
+            selected_category = ProductCategoryModel.objects.get(id=selected_category_id)
+            context['features'] = selected_category.get_all_features_is_required()
+        else:
+            context['features'] = []
+        
         return context
-    
-    def get_queryset(self):
-        queryset = ProductModel.objects.filter(status=ProductStatusType.publish.value).order_by('-stock')
 
-        if search_q:=self.request.GET.get('q'):
-            queryset = queryset.filter(title__icontains=search_q)
-        if category_id := self.request.GET.get('category_id'):
+    def get_queryset(self):
+        queryset = ProductModel.objects.filter(status=ProductStatusType.publish.value)
+        
+        category_id = self.request.GET.get('category_id')
+        if category_id:
             category = ProductCategoryModel.objects.filter(id=category_id).first()
             if category:
                 if category.parent is None:
-                    queryset = queryset.filter(category__in=category.subcategories.all())
+                    queryset = queryset.filter(category__in=category.get_all_subcategories())
                 else:
                     queryset = queryset.filter(category=category)
-
+        
+        if q := self.request.GET.get('q'):
+            queryset = queryset.filter(title__icontains=q)
         
         if min_price := self.request.GET.get('min_price'):
             queryset = queryset.filter(price__gte=min_price)
         if max_price := self.request.GET.get('max_price'):
             queryset = queryset.filter(price__lte=max_price)
+
+
         
-        if order_by:=self.request.GET.get('order_by'):
+        for key, values in self.request.GET.lists():
+            if key.startswith('feature_'):
+                feature_id = key.split('_')[1]
+                values = [v for v in values if v.strip()]  
+
+                if not values:
+                    continue
+
+                subquery = ProductFeature.objects.filter(
+                    product_id=OuterRef('id'),
+                    feature_id=feature_id
+                ).filter(
+                    Q(option__value__in=values) | Q(value__in=values)
+                )
+
+                queryset = queryset.annotate(**{f'has_feature_{feature_id}': Exists(subquery)})
+                queryset = queryset.filter(**{f'has_feature_{feature_id}': True})
+    
+        
+        if order_by := self.request.GET.get('order_by'):
             queryset = queryset.order_by(order_by)
-
-        page_size = self.request.GET.get('page_size')
-        if page_size:
+        
+        if page_size := self.request.GET.get('page_size'):
             self.paginate_by = int(page_size)
-            
+        
         return queryset
-
-
+    
 
 class ShopProductDetailView(DetailView):
     template_name = 'shop/product-overview.html'
@@ -64,6 +97,7 @@ class ShopProductDetailView(DetailView):
             product=product,
             status=ReviewStatusType.accepted.value
         )
+        context['reviews'] = reviews
         
         total_reviews = reviews.count()
         star_counts = reviews.aggregate(
@@ -77,10 +111,9 @@ class ShopProductDetailView(DetailView):
                 round((star_counts[f'star{star}'] / total_reviews * 100)) 
                 if total_reviews else 0
             ) 
-            for star in reversed(range(1, 6))  # از 5 تا 1
+            for star in reversed(range(1, 6))  
         ]
         
-        # درصد توصیهگری (4 یا 5 ستاره)
         recommend_count = reviews.filter(rate__gte=4).count()
         context['recommend_percentage'] = round((recommend_count / total_reviews) * 100) if total_reviews else 0
         
@@ -111,7 +144,6 @@ class CategoriesSidebar(TemplateView):
     template_name = 'shop/categories-sidebar.html'
 
     def get_queryset(self):
-        # کش کردن ساختار دستهها
         queryset = cache.get('category_tree_queryset')
         if not queryset:
             queryset = ProductCategoryModel.objects.prefetch_related(
@@ -122,19 +154,18 @@ class CategoriesSidebar(TemplateView):
                     )
                 )
             ).filter(parent__isnull=True)
-            cache.set('category_tree_queryset', queryset, 60*60*24*7)  # 7 روز کش
+            cache.set('category_tree_queryset', queryset, 60*60*24*7)  
         return queryset
 
     def get_min_prices(self):
         min_prices = cache.get('min_prices_data')
-        # if not min_prices:
         from django.db.models import Min
         categories = ProductCategoryModel.objects.filter(
             slug__in=["mobile-phones", "mens-clothing", "womens-clothing", "cosmetics"]
         ).prefetch_related('products')
         min_prices = {}
         for category in categories:
-            slug_cleaned = category.slug.replace('-', '_')  # تبدیل - به _
+            slug_cleaned = category.slug.replace('-', '_')
             min_price = category.products.aggregate(min_price=Min('price'))['min_price']
             min_prices[f"min_price_{slug_cleaned}"] = {
                 'id': category.id,
@@ -146,7 +177,6 @@ class CategoriesSidebar(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        # 1. ساختار دستهبندی (کش شده)
         root_categories = self.get_queryset()
         
         def build_tree(category):
@@ -156,10 +186,8 @@ class CategoriesSidebar(TemplateView):
             }
         context['category_tree'] = [build_tree(cat) for cat in root_categories]
         
-        # 2. حداقل قیمتها (کش شده)
         context.update(self.get_min_prices())
         
-        # 3. محصولات پرطرفدار (بدون کش)
         context["poplar_products"] = ProductModel.objects.select_related(
             'category', 'user'
         ).filter(

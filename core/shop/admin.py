@@ -9,12 +9,12 @@ class ProductCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(CategoryFeature)
 class CategoryFeatureAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category', 'is_required')
+    list_display = ('id','name', 'category', 'is_required')
     list_filter = ('category', 'is_required')
 
 @admin.register(FeatureOption)
 class FeatureOptionAdmin(admin.ModelAdmin):
-    list_display = ('value', 'feature')
+    list_display = ('id','value', 'feature')
     list_filter = ('feature',)
 
 @admin.register(ProductModel)
@@ -26,7 +26,7 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(ProductFeature)
 class ProductFeatureAdmin(admin.ModelAdmin):
-    list_display = ('product', 'feature', 'value', 'option')
+    list_display = ('id','product', 'feature', 'value', 'option')
     list_filter = ('product', 'feature')
 
 @admin.register(ProductImageModel)

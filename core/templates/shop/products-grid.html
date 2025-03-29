@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-
+{% load shop_tags %}
 
 {% block content %}
 
@@ -64,55 +64,122 @@
 
                 <!-- Navbar Collapse -->
                 <div id="navbarVerticalNavMenu" class="collapse navbar-collapse">
-                    <form action="." class="w-100">
+                    <form action="." method="GET" class="w-100">
+                        <!-- ذخیره تمام فیلترها به جز 'page' -->
+                        {% for key, values in current_filters.items %}
+                          {% if key != 'page' %}
+                            {% if key|startswith:"feature_" %}  <!-- حالا این فیلتر کار میکند -->
+                              {% for value in values %}
+                                <input type="hidden" name="{{ key }}" value="{{ value }}">
+                              {% endfor %}
+                            {% else %}
+                              <input type="hidden" name="{{ key }}" value="{{ values }}">
+                            {% endif %}
+                          {% endif %}
+                        {% endfor %}
 
+                        <!-- جستجو -->
                         <div class="border-bottom pb-4 mb-4">
-                            <h5>جستو جوی کالا</h5>
-                            <div class="d-grid gap-2">
-                                <div class="form-group">
-                                    <label class="form-label d-flex" for="search-query-filter">جستو جو</label>
-                                    <input class="form-control" placeholder="واژه مورد نظر را وارد نمایید" type="text"
-                                        name="q" id="search-query-filter">
-                                </div>
+                          <h5>جستو جوی کالا</h5>
+                          <div class="d-grid gap-2">
+                            <div class="form-group">
+                              <label class="form-label d-flex" for="search-query-filter">جستو جو</label>
+                              <input
+                                class="form-control"
+                                placeholder="واژه مورد نظر را وارد نمایید"
+                                type="text"
+                                name="q"
+                                id="search-query-filter"
+                                value="{{ current_filters.q|default:'' }}"
+                              >
                             </div>
+                          </div>
                         </div>
-                        <div class="border-bottom pb-4 mb-4">
-                            <h5>قیمت</h5>
-                            <div class="d-grid gap-2">
 
-                                <div class="form-group">
-                                    <label class="form-label d-flex" for="min-price-filter">کمترین قیمت</label>
-                                    <input class="form-control" type="number" name="min_price"
-                                        placeholder="کمترین قیمت مد نظر" id="min-price-filter">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label d-flex" for="max-price-filter">بیشترین قیمت</label>
-                                    <input class="form-control" type="number" name="max_price"
-                                        placeholder="بیشترین قیمت مد نظر" id="max-price-filter">
-                                </div>
-                            </div>
-                        </div>
+                        <!-- قیمت -->
                         <div class="border-bottom pb-4 mb-4">
-                            <h5>دسته بندی</h5>
-                            <div class="d-grid gap-2">
-                                <div class="mb-2 mb-sm-0 me-sm-2">
-                                    <select class="form-select form-select-sm" name="category_id"
-                                        id="category-id-filter">
-                                        <option value="" selected>انتخاب دسته بندی</option>
-                                        {% for category in categories %}
-                                        <option value="{{category.id}}">{{category.title}}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
+                          <h5>قیمت</h5>
+                          <div class="d-grid gap-2">
+                            <div class="form-group">
+                              <label class="form-label d-flex" for="min-price-filter">کمترین قیمت</label>
+                              <input
+                                class="form-control"
+                                type="number"
+                                name="min_price"
+                                placeholder="کمترین قیمت مد نظر"
+                                id="min-price-filter"
+                                value="{{ current_filters.min_price|default:'' }}"
+                              >
                             </div>
+                            <div class="form-group">
+                              <label class="form-label d-flex" for="max-price-filter">بیشترین قیمت</label>
+                              <input
+                                class="form-control"
+                                type="number"
+                                name="max_price"
+                                placeholder="بیشترین قیمت مد نظر"
+                                id="max-price-filter"
+                                value="{{ current_filters.max_price|default:'' }}"
+                              >
+                            </div>
+                          </div>
                         </div>
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-outline-primary btn-transition mb-3">اعمال
-                                فیلتر</button>
-                            <a href="{% url 'shop:product-grid' %}"
-                                class="btn btn-outline-danger btn-transition mb-3">حذف فیلتر ها</a>
+
+                        <!-- ویژگیها -->
+                        {% if features %}
+                          <div class="border-bottom pb-4 mb-4">
+                            <h5>ویژگی‌ها</h5>
+                            <div class="d-grid gap-2">
+                              {% for feature in features %}
+                                <div class="form-group">
+                                  <label class="form-label d-flex">{{ feature.name }}</label>
+
+                                  {% if feature.options.exists %}
+                                    <!-- فیلترهای چندگزینهای -->
+                                    <div class="ms-3">
+                                      {% for option in feature.options.all %}
+                                        <div class="form-check">
+                                          <input
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            name="feature_{{ feature.id }}"
+                                            value="{{ option.value }}"
+                                            id="feature_{{ feature.id }}_{{ forloop.counter }}"
+                                            {% is_filter_active feature.id option.value request.GET as is_active %} {% if is_active %}checked{% endif %}
+                                            >
+                                          <label class="form-check-label" for="feature_{{ feature.id }}_{{ forloop.counter }}">
+                                            {{ option.value }}
+                                          </label>
+                                        </div>
+                                      {% endfor %}
+                                    </div>
+                                  {% else %}
+                                    <!-- فیلترهای متنی -->
+                                    <input
+                                      class="form-control"
+                                      type="text"
+                                      name="feature_{{ feature.id }}"
+                                      placeholder="مقدار {{ feature.name }}"
+                                      value="{{ current_filters|get:'feature_'|add:feature.id }}"
+                                    >
+                                  {% endif %}
+                                </div>
+                              {% endfor %}
+                            </div>
+                          </div>
+                        {% endif %}
+
+                        <!-- دکمهها -->
+                        <div class="d-grid gap-2">
+                          <button type="submit" class="btn btn-outline-primary btn-transition mb-3">اعمال فیلتر</button>
+
+                          <!-- حذف تمام فیلترها بهجز دستهبندی -->
+                          <a
+                            href="{% url 'shop:product-grid' %}{% if current_filters.category_id %}?category_id={{ current_filters.category_id }}{% endif %}"
+                            class="btn btn-outline-danger btn-transition mb-3"
+                          >حذف فیلترها</a>
                         </div>
-                    </form>
+                      </form>
                 </div>
                 <!-- End Navbar Collapse -->
             </div>
@@ -346,32 +413,32 @@
 <div class="container content-space-2">
     <div class="row">
         <div class="col text-center py-3">
-            <img class="avatar avatar-lg avatar-4x3" src="{% static '/svg/brands/hollister-dark.svg' %}" alt="Logo">
+            <img class="avatar avatar-lg avatar-4x3" src="{% static 'svg/brands/hollister-dark.svg' %}" alt="Logo">
         </div>
         <!-- End Col -->
 
         <div class="col text-center py-3">
-            <img class="avatar avatar-lg avatar-4x3" src="{% static '/svg/brands/levis-dark.svg' %}" alt="Logo">
+            <img class="avatar avatar-lg avatar-4x3" src="{% static 'svg/brands/levis-dark.svg' %}" alt="Logo">
         </div>
         <!-- End Col -->
 
         <div class="col text-center py-3">
-            <img class="avatar avatar-lg avatar-4x3" src="{% static '/svg/brands/new-balance-dark.svg' %}" alt="Logo">
+            <img class="avatar avatar-lg avatar-4x3" src="{% static 'svg/brands/new-balance-dark.svg' %}" alt="Logo">
         </div>
         <!-- End Col -->
 
         <div class="col text-center py-3">
-            <img class="avatar avatar-lg avatar-4x3" src="{% static '/svg/brands/puma-dark.svg' %}" alt="Logo">
+            <img class="avatar avatar-lg avatar-4x3" src="{% static 'svg/brands/puma-dark.svg' %}" alt="Logo">
         </div>
         <!-- End Col -->
 
         <div class="col text-center py-3">
-            <img class="avatar avatar-lg avatar-4x3" src="{% static '/svg/brands/nike-dark.svg' %}" alt="Logo">
+            <img class="avatar avatar-lg avatar-4x3" src="{% static 'svg/brands/nike-dark.svg' %}" alt="Logo">
         </div>
         <!-- End Col -->
 
         <div class="col text-center py-3">
-            <img class="avatar avatar-lg avatar-4x3" src="{% static '/svg/brands/tnf-dark.svg' %}" alt="Logo">
+            <img class="avatar avatar-lg avatar-4x3" src="{% static 'svg/brands/tnf-dark.svg' %}" alt="Logo">
         </div>
         <!-- End Col -->
     </div>
@@ -414,7 +481,7 @@
 {% endblock %}
 
   {% block extra_js_no_compress %}
-  <script> 
+  <script>
 
     function changePage(pageNumber) {
       const urlParams = new URLSearchParams(window.location.search);
@@ -424,7 +491,7 @@
 
 
   </script>
-  
+
 
 
 
@@ -433,28 +500,28 @@
       const orderBySelect = document.getElementById('order-by-filter');
       const pageSizeSelect = document.getElementById('page-size-filter');
       const currentPageSizeDisplay = document.getElementById('current-page-size');
-  
+
       function updateURL() {
           const selectedOrderBy = orderBySelect.value;
           const selectedPageSize = pageSizeSelect.value;
-  
+
           const urlParams = new URLSearchParams(window.location.search);
-  
+
           if(selectedOrderBy) {
               urlParams.set('order_by', selectedOrderBy);
           } else {
               urlParams.delete('order_by');
           }
-  
+
           if (selectedPageSize) {
               urlParams.set('page_size', selectedPageSize);
           } else {
               urlParams.delete('page_size');
           }
-  
+
           window.location.search = urlParams.toString();
       }
-  
+
       function updateCurrentPageSize() {
           const selectedPageSize = pageSizeSelect.value;
           if (selectedPageSize) {
@@ -463,17 +530,16 @@
               currentPageSizeDisplay.textContent = '';
           }
       }
-  
+
       orderBySelect.addEventListener('change', updateURL);
       pageSizeSelect.addEventListener('change', function() {
           updateURL();
           updateCurrentPageSize();
       });
-  
+
       // Initialize the display with the current selection
       updateCurrentPageSize();
   });
   </script>
   {% endblock extra_js_no_compress %}
-  
- 
+

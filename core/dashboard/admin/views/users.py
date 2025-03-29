@@ -9,53 +9,60 @@ from django.views.generic import (
     UpdateView,
     DeleteView,
 )
-
+from django.core.exceptions import FieldError
+from django.http import HttpResponseForbidden
 from django.contrib.auth.mixins import LoginRequiredMixin
 from dashboard.permissions import *
 from django.db.models import F,Q
 from django.core import exceptions
+from django.contrib import messages
+from django.db.models import ProtectedError
 from django.contrib.auth import get_user_model
 from dashboard.admin.forms import *
+
+
 User = get_user_model()
 
 
 
 
 
-class UserListView(LoginRequiredMixin,HasAdminAccessPermission, ListView):
+class UserListView(LoginRequiredMixin, HasAdminAccessPermission, ListView):
     title = "لیست کاربران"
     template_name = "dashboard/admin/users/user-list.html"
     paginate_by = 10
     ordering = "-created_date"
 
     def get_paginate_by(self, queryset):
-        """
-        Paginate by specified value in querystring, or use default class property value.
-        """
-        return self.request.GET.get('paginate_by', self.paginate_by)
-    
+        return self.request.GET.get('page_size', self.paginate_by)
 
     def get_queryset(self):
-        queryset = User.objects.filter(is_superuser=False,type=UserType.customer.value).order_by("-created_date")
-        search_query = self.request.GET.get('q', None)
-        ordering_query = self.request.GET.get('ordering', None)
-
-        if search_query:
+        queryset = User.objects.all()
+        
+        if self.request.user.type == UserType.admin.value:
             queryset = queryset.filter(
-                 Q(email__icontains=search_query)
+                type=UserType.customer.value,
+                is_superuser=False
             )
-        if ordering_query:
+        
+        if search_query := self.request.GET.get('q'):
+            queryset = queryset.filter(email__icontains=search_query)
+        
+        if ordering := self.request.GET.get('order_by'):
             try:
-                queryset = queryset.order_by(ordering_query)
-            except exceptions.FieldError:
-                pass
+                queryset = queryset.order_by(ordering)
+            except FieldError:
+                queryset = queryset.order_by(self.ordering)
+        else:
+            queryset = queryset.order_by(self.ordering)
+            
         return queryset
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["total_result"] = self.get_queryset().count()
+        context["total_items"] = self.get_queryset().count()
         return context
-
+    
 
 
 class UserDeleteView(LoginRequiredMixin,HasAdminAccessPermission,SuccessMessageMixin, DeleteView):
@@ -64,18 +71,80 @@ class UserDeleteView(LoginRequiredMixin,HasAdminAccessPermission,SuccessMessageM
     success_url = reverse_lazy("dashboard:admin:user-list")
     success_message = "کاربر مورد نظر با موفقیت حذف شد"
     def get_queryset(self):
-        return User.objects.filter(is_superuser=False,type=UserType.customer.value)
+        user = self.request.user
+        if user.type == UserType.admin.value:
+            return User.objects.filter(is_superuser=False,type=UserType.customer.value)
+        elif user.type == UserType.superuser.value:
+            return User.objects.all() 
+
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['object'] = self.get_object()  # ارسال object به تمپلیت
+        return context
+
+    def delete(self, request, *args, **kwargs):
+        try:
+            return super().delete(request, *args, **kwargs)
+        except ProtectedError:
+            messages.error(request, "حذف ناموفق: این کاربر دارای روابط اجباری است.")
+            return redirect('dashboard:admin:user-list')
     
-    
-class UserUpdateView(LoginRequiredMixin,HasAdminAccessPermission,SuccessMessageMixin, UpdateView):
+    def dispatch(self, request, *args, **kwargs):
+        obj = self.get_object()
+        if obj.products.exists():
+            messages.error(request, "این کاربر دارای محصولات مرتبط است.")
+            return redirect('dashboard:admin:user-edit', pk=obj.pk)
+        return super().dispatch(request, *args, **kwargs)
+
+class UserUpdateView(LoginRequiredMixin, HasAdminAccessPermission, SuccessMessageMixin, UpdateView):
     title = "ویرایش کاربر"
     template_name = "dashboard/admin/users/user-edit.html"
     success_message = "کاربر مورد نظر با موفقیت ویرایش شد"
-    form_class = UserForm
     
+    def get_form_class(self):
+        return UserForm
     
-    def get_success_url(self) -> str:
-        return reverse_lazy("dashboard:admin:user-edit",kwargs={"pk":self.kwargs.get("pk")})
-    
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
+    def get_success_url(self):
+        return reverse_lazy("dashboard:admin:user-edit", kwargs={"pk": self.kwargs.get("pk")})
+
     def get_queryset(self):
-        return User.objects.filter(is_superuser=False,type=UserType.customer.value)
+        base_queryset = User.objects.all()
+        
+        if self.request.user.type == UserType.admin.value:
+            return base_queryset.filter(
+                type__in=[UserType.customer.value, UserType.admin.value],
+                is_superuser=False
+            )
+        return base_queryset
+
+    def form_valid(self, form):
+        user = form.save(commit=False)
+
+        user.email = self.get_object().email  
+
+        if self.request.user.type != UserType.superuser.value:
+            if 'type' in form.changed_data:
+                form.add_error('type', 'شما مجوز تغییر نوع کاربر را ندارید')
+                return self.form_invalid(form)
+
+            user.type = self.get_object().type
+            user.is_superuser = self.get_object().is_superuser
+
+        return super().form_valid(form)
+
+    def dispatch(self, request, *args, **kwargs):
+        target_user = self.get_object()
+        
+        if request.user.is_superuser:
+            return super().dispatch(request, *args, **kwargs)
+            
+        if target_user.is_superuser or (target_user.type != UserType.superuser.value and target_user != request.user):
+            return HttpResponseForbidden("شما مجوز ویرایش این کاربر را ندارید")
+            
+        return super().dispatch(request, *args, **kwargs)

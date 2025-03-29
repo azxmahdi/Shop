@@ -27,10 +27,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-i(+^n*73lepb8-2ge-c%+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = [
-    'backend',
-    '127.0.0.1'
-]
+ALLOWED_HOSTS = ["*"] 
 
 # Application definition
 
@@ -43,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_celery_beat',
     'mail_templated',
+    
     
 
     'ckeditor',
@@ -70,6 +68,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -146,12 +145,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 
+
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "static"
+STATIC_ROOT = BASE_DIR / "static"        
 STATICFILES_DIRS = [BASE_DIR / "statics"]
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -210,3 +211,7 @@ CACHES = {
 # Optional: This is to ensure Django sessions are stored in Redis
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 SESSION_CACHE_ALIAS = 'default'
+
+# python-slugify configuration
+SLUGIFY_USE_UNICODE = True
+

@@ -97,19 +97,16 @@ class Command(BaseCommand):
         ]
 
         for main_cat in categories_data:
-            # ایجاد دسته اصلی
             parent, created = ProductCategoryModel.objects.get_or_create(
                 title=main_cat['title'],
                 slug=main_cat['slug'],
                 defaults={'parent': None}
             )
-            self.stdout.write(f"دسته اصلی: {parent.title} {'ایجاد شد' if created else 'وجود دارد'}")
-
-            # ایجاد زیردستهها
             for subcat in main_cat['subcategories']:
                 subcategory, created = ProductCategoryModel.objects.get_or_create(
                     title=subcat['title'],
                     slug=subcat['slug'],
                     defaults={'parent': parent}
                 )
-                self.stdout.write(f"  زیردسته: {subcategory.title} {'ایجاد شد' if created else 'وجود دارد'}")
+        self.stdout.write(self.style.SUCCESS("All parent categories and subcategories were successfully created."))
+            

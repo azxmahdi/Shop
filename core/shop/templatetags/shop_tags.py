@@ -27,10 +27,32 @@ def similar_products(context,product):
 
 
 
-from django import template
-
-register = template.Library()
 
 @register.inclusion_tag('includes/category_node.html')
 def render_category(node):
     return {'node': node}
+
+
+@register.filter
+def get(dictionary, key):
+    return dictionary.get(key, '')
+
+@register.filter
+def getlist(dictionary, key):
+    return dictionary.getlist(key, [])
+
+@register.filter(name='startswith')
+def startswith(text, starts):
+    if isinstance(text, str):
+        return text.startswith(starts)
+    return False
+
+@register.filter
+def get_item(dictionary, key):
+    return dictionary.get(key, [])
+
+@register.simple_tag
+def is_filter_active(feature_id, option_value, current_filters):
+    param_name = f"feature_{feature_id}"
+    selected_values = current_filters.getlist(param_name, [])
+    return str(option_value) in selected_values

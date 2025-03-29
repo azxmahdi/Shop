@@ -7,3 +7,4 @@ from .reviews import *
 from .users import *
 from .newsletters import *
 from .contacts import *
+from .contacts import *

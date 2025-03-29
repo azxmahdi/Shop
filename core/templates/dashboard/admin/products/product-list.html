@@ -101,6 +101,7 @@
                             <td>{{object.price}}</td>
                             <td>{{object.stock}}</td>
                             <td> {% if object.is_published %}<span class="badge bg-success">نشر شده</span>
+                                {% elif object.is_not_completed %} <span class="badge bg" style="background-color: #dfda35;">به صورت کامل ایجاد نشده</span>
                                 {% else %}
                                 <span class="badge bg-danger">ذخیره</span> {% endif %}
                             </td>

@@ -108,6 +108,8 @@
                                 href="{% url 'dashboard:admin:product-delete' pk=object.pk %}">حذف</a>
                             <a class="btn btn-secondary ms-3" href="{% url 'dashboard:admin:product-list' %}">بازگشت</a>
                             <button class="btn btn-primary ms-3" type="submit">ثبت تغییرات</button>
+                            <a class="btn btn-primary ms-3" href="{% url 'dashboard:admin:edit-product-feature' product_id=object.id %}">ویرایش ویژگی های محصول</a>
+
                         </div>
                     </div>
             </form>

@@ -7,7 +7,8 @@ from django.views.generic import (
     UpdateView,
     ListView,
     DeleteView,
-    CreateView
+    CreateView,
+    FormView
 )
 from django.contrib.auth.mixins import LoginRequiredMixin
 from dashboard.permissions import HasAdminAccessPermission
@@ -18,12 +19,14 @@ from django.urls import reverse_lazy
 from accounts.models import Profile
 from django.shortcuts import redirect
 from django.contrib import messages
-from shop.models import ProductModel, ProductCategoryModel, ProductStatusType
+from django.urls import reverse
+from django.shortcuts import get_object_or_404
+from shop.models import ProductModel, ProductCategoryModel, ProductStatusType, ProductFeature
 from django.core.exceptions import FieldError
 
 
-from ..forms import ProductImageForm
-from shop.models import ProductModel, ProductImageModel, ProductStatusType, ProductCategoryModel
+from ..forms import ProductImageForm, ProductFeatureForm
+from shop.models import ProductModel, ProductImageModel, ProductStatusType, ProductCategoryModel, CategoryFeature, FeatureOption
 
 class AdminProductListView(LoginRequiredMixin, HasAdminAccessPermission, ListView):
     template_name = "dashboard/admin/products/product-list.html"
@@ -56,16 +59,17 @@ class AdminProductListView(LoginRequiredMixin, HasAdminAccessPermission, ListVie
         return context
 
 
-class AdminProductCreateView(LoginRequiredMixin, HasAdminAccessPermission, SuccessMessageMixin, CreateView):
+class AdminProductCreateView(LoginRequiredMixin, HasAdminAccessPermission, CreateView):
     template_name = "dashboard/admin/products/product-create.html"
     queryset = ProductModel.objects.all()
     form_class = ProductForm
-    success_message = "ایجاد محصول با موفقیت انجام شد"
 
     def form_valid(self, form):
         form.instance.user = self.request.user
+        status = form.cleaned_data["status"]
+        form.instance.status = ProductStatusType.not_completed.value
         super().form_valid(form)
-        return redirect(reverse_lazy("dashboard:admin:product-edit", kwargs={"pk": form.instance.pk}))
+        return redirect(reverse_lazy("dashboard:admin:add-product-feature", kwargs={"product_id": form.instance.pk, "status":status}))
 
     def get_success_url(self):
         return reverse_lazy("dashboard:admin:product-list")
@@ -140,3 +144,107 @@ class AdminProductRemoveImageView(LoginRequiredMixin, HasAdminAccessPermission, 
         messages.error(
             self.request, 'اشکالی در حذف تصویر رخ داد لطفا مجدد امتحان نمایید')
         return redirect(reverse_lazy('dashboard:admin:product-edit', kwargs={'pk': self.kwargs.get('pk')}))
+    
+
+
+class AdminAddProductFeatureFormView(LoginRequiredMixin, HasAdminAccessPermission, FormView):
+    template_name = 'dashboard/admin/products/add-product-feature.html'
+    form_class = ProductFeatureForm
+
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.product = get_object_or_404(
+            ProductModel,
+            id=self.kwargs['product_id']
+        )
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['product_id'] = self.product.id
+        return kwargs
+
+    def form_valid(self, form):
+        ProductFeature.objects.filter(product=self.product).delete()
+        
+        for field_name, value in form.cleaned_data.items():
+            feature_id = field_name.split('_')[-1]
+            feature = get_object_or_404(CategoryFeature, id=feature_id)
+            
+            if not value and not feature.is_required:
+                continue  
+            
+            if feature.options.exists():
+                option = get_object_or_404(FeatureOption, id=value)
+                ProductFeature.objects.create(
+                    product=self.product,
+                    feature=feature,
+                    option=option
+                )
+            else:
+                ProductFeature.objects.create(
+                    product=self.product,
+                    feature=feature,
+                    value=value
+                )
+        product = ProductModel.objects.get(pk=self.product.pk)
+        product.status = self.kwargs["status"]
+        product.save()
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('dashboard:admin:product-list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['product'] = self.product
+        return context
+
+class AdminEditProductFeatureFormView(FormView):
+    template_name = 'dashboard/admin/products/edit-product-feature.html'
+    form_class = ProductFeatureForm
+
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.product = get_object_or_404(
+            ProductModel,
+            id=self.kwargs['product_id']
+        )
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['product_id'] = self.product.id
+        return kwargs
+
+    def form_valid(self, form):
+        ProductFeature.objects.filter(product=self.product).delete()
+        
+        for field_name, value in form.cleaned_data.items():
+            feature_id = field_name.split('_')[-1]
+            feature = get_object_or_404(CategoryFeature, id=feature_id)
+            
+            if not value and not feature.is_required:
+                continue  
+            
+            if feature.options.exists():
+                option = get_object_or_404(FeatureOption, id=value)
+                ProductFeature.objects.create(
+                    product=self.product,
+                    feature=feature,
+                    option=option
+                )
+            else:
+                ProductFeature.objects.create(
+                    product=self.product,
+                    feature=feature,
+                    value=value
+                )
+
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('dashboard:admin:product-list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['product'] = self.product
+        return context

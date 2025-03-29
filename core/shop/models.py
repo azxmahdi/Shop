@@ -4,9 +4,11 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils import timezone
 from datetime import timedelta
 from ckeditor_uploader.fields import RichTextUploadingField
+
 class ProductStatusType(models.IntegerChoices):
     publish = 1, ("نمایش")
     draft = 2, ("عدم نمایش")
+    not_completed = 3 , ("به صورت کامل ایجاد نشده")
 
 
 class ProductCategoryModel(models.Model):
@@ -41,6 +43,14 @@ class ProductCategoryModel(models.Model):
             current = current.parent
         return ancestors
 
+    def get_all_features_is_required(self):
+        """دریافت تمام ویژگی‌های این دسته و دسته‌های والد"""
+        from .models import CategoryFeature  # جلوگیری از Import Circular
+        features = CategoryFeature.objects.filter(category=self, is_required=True)
+        for ancestor in self.get_ancestors():
+            features |= CategoryFeature.objects.filter(category=ancestor, is_required=True)
+        return features
+    
     def get_all_features(self):
         """دریافت تمام ویژگی‌های این دسته و دسته‌های والد"""
         from .models import CategoryFeature  # جلوگیری از Import Circular
@@ -117,7 +127,8 @@ class ProductModel(models.Model):
     user = models.ForeignKey(
         "accounts.CustomUser",
         on_delete=models.PROTECT,
-        verbose_name="کاربر ایجادکننده"
+        verbose_name="کاربر ایجادکننده",
+        related_name='products'
     )
     category = models.ForeignKey(
         ProductCategoryModel,
@@ -182,6 +193,10 @@ class ProductModel(models.Model):
     
     def is_published(self):
         return self.status == ProductStatusType.publish.value
+    
+    def is_not_completed(self):
+        return self.status == ProductStatusType.not_completed.value
+    
     
     def is_new(self):
         return self.created_date >= timezone.now() - timedelta(weeks=1)
