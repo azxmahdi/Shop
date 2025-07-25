@@ -1,14 +1,14 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from .models import Profile
 from django.contrib.auth import get_user_model
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.sessions.models import Session
+
+from .models import Profile
 
 User = get_user_model()
 
+
 class CustomUserAdmin(UserAdmin):
-    """
-    Custom admin panel for user management with add and change forms plus password
-    """
 
     model = User
     list_display = ("id", "email", "is_superuser", "is_active", "is_verified")
@@ -65,6 +65,7 @@ class CustomUserAdmin(UserAdmin):
         ),
     )
 
+
 class ProfileAdmin(admin.ModelAdmin):
     model = Profile
     list_display = ("user", "first_name", "last_name", "phone_number")
@@ -75,11 +76,12 @@ admin.site.register(Profile, ProfileAdmin)
 admin.site.register(User, CustomUserAdmin)
 
 
-
-from django.contrib.sessions.models import Session
 class SessionAdmin(admin.ModelAdmin):
     def _session_data(self, obj):
         return obj.get_decoded()
-    list_display = ['session_key', '_session_data', 'expire_date']
-    readonly_fields = ['_session_data']
+
+    list_display = ["session_key", "_session_data", "expire_date"]
+    readonly_fields = ["_session_data"]
+
+
 admin.site.register(Session, SessionAdmin)

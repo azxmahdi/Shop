@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import CartModel,CartItemModel
+
+from .models import CartItemModel, CartModel
 
 
 @admin.register(CartModel)
@@ -9,4 +10,4 @@ class CartModelAdmin(admin.ModelAdmin):
 
 @admin.register(CartItemModel)
 class CartItemModelAdmin(admin.ModelAdmin):
-    list_display = ("id", "cart","product","quantity")
+    list_display = ("id", "cart", "product", "quantity")

@@ -1,34 +1,39 @@
 import random
-from django.core.management.base import BaseCommand
+from pathlib import Path
+from random import randint, uniform
+
 from django.contrib.auth import get_user_model
+from django.core.files import File
+from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils.text import slugify
-from random import randint, uniform
 from faker import Faker
-from django.core.files import File
-from pathlib import Path
 
-from shop.models import ProductCategoryModel, ProductModel, ProductFeature
-
+from shop.models import ProductCategoryModel, ProductFeature, ProductModel
 
 BASE_DIR = Path(__file__).resolve().parent
-fake = Faker('fa_IR')
+fake = Faker("fa_IR")
 User = get_user_model()
 
+
 class Command(BaseCommand):
-    help = 'ایجاد محصولات در تمام زیردسته‌ها با تعداد مشخص'
+    help = "ایجاد محصولات در تمام زیردسته‌ها با تعداد مشخص"
 
     def add_arguments(self, parser):
-        parser.add_argument('count', type=int, help='تعداد محصول برای هر زیردسته')
+        parser.add_argument(
+            "count", type=int, help="تعداد محصول برای هر زیردسته"
+        )
 
     @transaction.atomic
     def handle(self, *args, **kwargs):
-        count = kwargs['count']
+        count = kwargs["count"]
         user, created = User.objects.get_or_create(
             email="create_products@example.com",
-            defaults={'password': "CreateProducts123@"}
+            defaults={"password": "CreateProducts123@"},
         )
-        subcategories = ProductCategoryModel.objects.exclude(parent__isnull=True)
+        subcategories = ProductCategoryModel.objects.exclude(
+            parent__isnull=True
+        )
         image_list = [
             "./img/img1.jpg",
             "./img/img2.jpg",
@@ -40,7 +45,7 @@ class Command(BaseCommand):
             "./img/img8.jpg",
         ]
         for category in subcategories:
-            
+
             for _ in range(count):
                 title = f"{fake.word()} {category.title}"
                 slug = slugify(title, allow_unicode=True)
@@ -48,7 +53,10 @@ class Command(BaseCommand):
                     slug += f"-{randint(1, 100)}"
                 selected_image = random.choice(image_list)
 
-                image_obj = File(open(BASE_DIR / selected_image, "rb"), name=Path(selected_image).name)
+                image_obj = File(
+                    open(BASE_DIR / selected_image, "rb"),
+                    name=Path(selected_image).name,
+                )
 
                 product = ProductModel.objects.create(
                     user=user,
@@ -59,38 +67,37 @@ class Command(BaseCommand):
                     price=randint(100000, 5000000),
                     stock=randint(0, 100),
                     status=1,
-                    discount_percent=randint(0, 30)
+                    discount_percent=randint(0, 30),
                 )
 
                 self.assign_features(product)
-                
-        self.stdout.write(self.style.SUCCESS(f"{count} products were created for each category."))
+
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"{count} products were created for each category."
+            )
+        )
 
     def assign_features(self, product):
         features = product.category.get_all_features()
         value_generators = {
-            'ابعاد': lambda: f"{randint(100, 200)}x{randint(50, 150)} سانتیمتر",
-            'وزن': lambda: f"{uniform(0.5, 5.0):.1f} کیلوگرم",
-            'دوز': lambda: f"{randint(500, 2000)} میلیگرم",
-            'سال چاپ': lambda: str(randint(1380, 1400)),
-            'نیاز آبی': lambda: f"روزانه {randint(1, 3)} بار"
+            "ابعاد": lambda: f"{randint(100, 200)}x{randint(50, 150)} سانتیمتر",
+            "وزن": lambda: f"{uniform(0.5, 5.0):.1f} کیلوگرم",
+            "دوز": lambda: f"{randint(500, 2000)} میلیگرم",
+            "سال چاپ": lambda: str(randint(1380, 1400)),
+            "نیاز آبی": lambda: f"روزانه {randint(1, 3)} بار",
         }
 
         for feature in features:
             if feature.options.exists():
-                option = feature.options.order_by('?').first()
+                option = feature.options.order_by("?").first()
                 ProductFeature.objects.create(
-                    product=product,
-                    feature=feature,
-                    option=option
+                    product=product, feature=feature, option=option
                 )
             else:
                 generator = value_generators.get(
-                    feature.name,
-                    lambda: fake.word()
+                    feature.name, lambda: fake.word()
                 )
                 ProductFeature.objects.create(
-                    product=product,
-                    feature=feature,
-                    value=generator()
+                    product=product, feature=feature, value=generator()
                 )

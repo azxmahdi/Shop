@@ -1,47 +1,48 @@
-from django.http import HttpResponse
-from django.views.generic import (
-    TemplateView,
-    FormView,
-    View
-)
-from django.contrib.auth.mixins import LoginRequiredMixin
-from order.permissions import HasCustomerAccessPermission
-from order.models import UserAddressModel
-from order.forms import CheckOutForm
-from cart.models import CartModel, CartItemModel
-from order.models import OrderModel, OrderItemModel
-from django.urls import reverse_lazy
-from cart.cart import CartSession
-from decimal import Decimal
-from order.models import CouponModel
-from django.http import JsonResponse
-from django.utils import timezone
-from django.shortcuts import redirect
 from django.contrib import messages
-from payment.zarinpal_client import ZarinPalSandbox
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import JsonResponse
+from django.shortcuts import redirect
+from django.urls import reverse_lazy
+from django.utils import timezone
+from django.views.generic import FormView, TemplateView, View
+
+from cart.cart import CartSession
+from cart.models import CartModel
+from order.forms import CheckOutForm
+from order.models import (
+    CouponModel,
+    OrderItemModel,
+    OrderModel,
+    UserAddressModel,
+)
+from order.permissions import HasCustomerAccessPermission
 from payment.models import PaymentModel
+from payment.zarinpal_client import ZarinPalSandbox
+
 from .validations import validate_quantity_in_cart_summer
 
 
-class OrderCheckOutView(LoginRequiredMixin, HasCustomerAccessPermission, FormView):
+class OrderCheckOutView(
+    LoginRequiredMixin, HasCustomerAccessPermission, FormView
+):
     template_name = "order/checkout.html"
     form_class = CheckOutForm
-    success_url = reverse_lazy('order:completed')
+    success_url = reverse_lazy("order:completed")
 
     def get_form_kwargs(self):
         kwargs = super(OrderCheckOutView, self).get_form_kwargs()
-        kwargs['request'] = self.request       
+        kwargs["request"] = self.request
         return kwargs
 
     def form_valid(self, form):
         user = self.request.user
         cleaned_data = form.cleaned_data
-        address = cleaned_data['address_id']
-        coupon = cleaned_data['coupon']
+        address = cleaned_data["address_id"]
+        coupon = cleaned_data["coupon"]
         validate = validate_quantity_in_cart_summer(self.request)
-        if validate['status'] == 'warning':
-            messages.warning(self.request, validate['message'])
-            return redirect('cart:cart-summary')
+        if validate["status"] == "warning":
+            messages.warning(self.request, validate["message"])
+            return redirect("cart:cart-summary")
         cart = CartModel.objects.get(user=user)
         order = self.create_order(address)
 
@@ -51,13 +52,13 @@ class OrderCheckOutView(LoginRequiredMixin, HasCustomerAccessPermission, FormVie
         total_price = order.calculate_total_price()
         self.apply_coupon(coupon, order, user, total_price)
         order.save()
- 
+
         return redirect(self.create_payment_url(order))
 
     def create_payment_url(self, order):
         zarinpal = ZarinPalSandbox()
         response = zarinpal.payment_request(order.get_price())
-        authority = response.get('data', {}).get('authority')
+        authority = response.get("data", {}).get("authority")
         payment_obj = PaymentModel.objects.create(
             authority_id=authority,
             amount=order.get_price(),
@@ -109,21 +110,29 @@ class OrderCheckOutView(LoginRequiredMixin, HasCustomerAccessPermission, FormVie
         context = super().get_context_data(**kwargs)
         cart = CartModel.objects.get(user=self.request.user)
         context["addresses"] = UserAddressModel.objects.filter(
-            user=self.request.user)
+            user=self.request.user
+        )
         total_price = cart.calculate_total_price()
         context["total_price"] = total_price
-        context["total_tax"] = round((total_price * 9)/100)
+        context["total_tax"] = round((total_price * 9) / 100)
         return context
 
 
-class OrderCompletedView(LoginRequiredMixin, HasCustomerAccessPermission, TemplateView):
+class OrderCompletedView(
+    LoginRequiredMixin, HasCustomerAccessPermission, TemplateView
+):
     template_name = "order/completed.html"
-    
-class OrderFailedView(LoginRequiredMixin, HasCustomerAccessPermission, TemplateView):
+
+
+class OrderFailedView(
+    LoginRequiredMixin, HasCustomerAccessPermission, TemplateView
+):
     template_name = "order/failed.html"
 
 
-class ValidateCouponView(LoginRequiredMixin, HasCustomerAccessPermission, View):
+class ValidateCouponView(
+    LoginRequiredMixin, HasCustomerAccessPermission, View
+):
 
     def post(self, request, *args, **kwargs):
         code = request.POST.get("code")
@@ -142,17 +151,32 @@ class ValidateCouponView(LoginRequiredMixin, HasCustomerAccessPermission, View):
             if coupon.used_by.count() >= coupon.max_limit_usage:
                 status_code, message = 403, "محدودیت در تعداد استفاده"
 
-            elif coupon.expiration_date and coupon.expiration_date < timezone.now():
+            elif (
+                coupon.expiration_date
+                and coupon.expiration_date < timezone.now()
+            ):
                 status_code, message = 403, "کد تخفیف منقضی شده است"
 
             elif user in coupon.used_by.all():
-                status_code, message = 403, "این کد تخفیف قبلا توسط شما استفاده شده است"
+                status_code, message = (
+                    403,
+                    "این کد تخفیف قبلا توسط شما استفاده شده است",
+                )
 
             else:
                 cart = CartModel.objects.get(user=self.request.user)
 
                 total_price = cart.calculate_total_price()
                 total_price = round(
-                    total_price - (total_price * (coupon.discount_percent/100)))
-                total_tax = round((total_price * 9)/100)
-        return JsonResponse({"message": message, "total_tax": total_tax, "total_price": total_price}, status=status_code)
+                    total_price
+                    - (total_price * (coupon.discount_percent / 100))
+                )
+                total_tax = round((total_price * 9) / 100)
+        return JsonResponse(
+            {
+                "message": message,
+                "total_tax": total_tax,
+                "total_price": total_price,
+            },
+            status=status_code,
+        )

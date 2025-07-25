@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from .models import PaymentModel
 
 # Register your models here.
@@ -12,5 +13,5 @@ class PaymentModelAdmin(admin.ModelAdmin):
         "amount",
         "response_code",
         "status",
-        "created_date"
+        "created_date",
     )
