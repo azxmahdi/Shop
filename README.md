@@ -11,7 +11,6 @@ This project demonstrates best practices in project structure, Docker deployment
 - [Features](#features)  
 - [Prerequisites](#prerequisites)  
 - [Installation](#installation)  
-  - [Local Setup (Without Docker)](#local-setup-without-docker)  
   - [Development Setup (Docker Compose)](#development-setup-docker-compose)  
   - [Staging/Production Setup (Docker Compose)](#stagingproduction-setup-docker-compose)  
 - [Environment Variables](#environment-variables)  
