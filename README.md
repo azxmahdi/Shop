@@ -70,27 +70,6 @@ This repository implements an **e-commerce platform** with these Django apps:
 
 ## Installation
 
-### Local Setup (Without Docker)
-
-```bash
-git clone <repo-url>
-cd core
-
-python -m venv .venv
-source .venv/bin/activate
-
-pip install --upgrade pip
-pip install -r requirements.txt
-
-cp .env.example .env
-# Edit .env with your credentials and settings
-
-python manage.py makemigrations
-python manage.py migrate
-python manage.py createsuperuser
-python manage.py runserver
-```
-
 ### Development Setup (Docker Compose)
 
 ```bash
